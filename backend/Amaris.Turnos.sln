@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7C274E62-44DD-4B99-A04B-A221E883D162}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Amaris.Turnos.Api", "src\Amaris.Turnos.Api\Amaris.Turnos.Api.csproj", "{3BA192B2-D85C-4ECA-9098-C04B4E0C1F2A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Amaris.Turnos.Domain", "src\Amaris.Turnos.Domain\Amaris.Turnos.Domain.csproj", "{D5F3D7AD-0D3E-4417-A3AE-77ECC9B2C0F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Amaris.Turnos.Application", "src\Amaris.Turnos.Application\Amaris.Turnos.Application.csproj", "{F3FC165C-F445-4EA0-B14F-6E963B4754EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Amaris.Turnos.Infrastructure", "src\Amaris.Turnos.Infrastructure\Amaris.Turnos.Infrastructure.csproj", "{C9945F32-C303-4902-8AAF-E8F7845FE8F3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{941A5AC7-622B-4264-97A3-4B729ABC8BDD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Amaris.Turnos.Application.Tests", "tests\Amaris.Turnos.Application.Tests\Amaris.Turnos.Application.Tests.csproj", "{A89A6490-B2E0-4196-9803-AAAD16FD3962}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Amaris.Turnos.Api.Tests", "tests\Amaris.Turnos.Api.Tests\Amaris.Turnos.Api.Tests.csproj", "{D6A2A8E4-E3B0-4664-8945-C4CC3D71A2B0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3BA192B2-D85C-4ECA-9098-C04B4E0C1F2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BA192B2-D85C-4ECA-9098-C04B4E0C1F2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BA192B2-D85C-4ECA-9098-C04B4E0C1F2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BA192B2-D85C-4ECA-9098-C04B4E0C1F2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5F3D7AD-0D3E-4417-A3AE-77ECC9B2C0F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5F3D7AD-0D3E-4417-A3AE-77ECC9B2C0F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5F3D7AD-0D3E-4417-A3AE-77ECC9B2C0F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5F3D7AD-0D3E-4417-A3AE-77ECC9B2C0F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3FC165C-F445-4EA0-B14F-6E963B4754EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3FC165C-F445-4EA0-B14F-6E963B4754EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3FC165C-F445-4EA0-B14F-6E963B4754EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3FC165C-F445-4EA0-B14F-6E963B4754EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9945F32-C303-4902-8AAF-E8F7845FE8F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9945F32-C303-4902-8AAF-E8F7845FE8F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9945F32-C303-4902-8AAF-E8F7845FE8F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9945F32-C303-4902-8AAF-E8F7845FE8F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A89A6490-B2E0-4196-9803-AAAD16FD3962}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A89A6490-B2E0-4196-9803-AAAD16FD3962}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A89A6490-B2E0-4196-9803-AAAD16FD3962}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A89A6490-B2E0-4196-9803-AAAD16FD3962}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6A2A8E4-E3B0-4664-8945-C4CC3D71A2B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6A2A8E4-E3B0-4664-8945-C4CC3D71A2B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6A2A8E4-E3B0-4664-8945-C4CC3D71A2B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6A2A8E4-E3B0-4664-8945-C4CC3D71A2B0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3BA192B2-D85C-4ECA-9098-C04B4E0C1F2A} = {7C274E62-44DD-4B99-A04B-A221E883D162}
+		{D5F3D7AD-0D3E-4417-A3AE-77ECC9B2C0F8} = {7C274E62-44DD-4B99-A04B-A221E883D162}
+		{F3FC165C-F445-4EA0-B14F-6E963B4754EC} = {7C274E62-44DD-4B99-A04B-A221E883D162}
+		{C9945F32-C303-4902-8AAF-E8F7845FE8F3} = {7C274E62-44DD-4B99-A04B-A221E883D162}
+		{A89A6490-B2E0-4196-9803-AAAD16FD3962} = {941A5AC7-622B-4264-97A3-4B729ABC8BDD}
+		{D6A2A8E4-E3B0-4664-8945-C4CC3D71A2B0} = {941A5AC7-622B-4264-97A3-4B729ABC8BDD}
+	EndGlobalSection
+EndGlobal
