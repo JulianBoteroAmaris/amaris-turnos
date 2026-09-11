@@ -1,8 +1,15 @@
+using Amaris.Turnos.Application;
+using Amaris.Turnos.Infrastructure;
+using Amaris.Turnos.Infrastructure.BackgroundServices;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHostedService<TurnoExpiracionBackgroundService>();
 
 var app = builder.Build();
 
