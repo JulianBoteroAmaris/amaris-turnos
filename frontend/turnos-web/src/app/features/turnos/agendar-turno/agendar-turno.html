@@ -1,0 +1,86 @@
+<main class="pagina">
+  <h1>Agendamiento de turnos</h1>
+
+  <section class="formulario-agendar">
+    <h2>Agendar turno</h2>
+
+    <form [formGroup]="form" (ngSubmit)="agendar()">
+      <div class="campo">
+        <label for="cedula">Cédula</label>
+        <input id="cedula" type="text" formControlName="cedula" inputmode="numeric" placeholder="Ej: 1023456789" />
+        @if (form.controls.cedula.touched && form.controls.cedula.invalid) {
+          <p class="error-campo">Ingresa una cédula válida (6 a 10 dígitos numéricos).</p>
+        }
+      </div>
+
+      <div class="campo">
+        <label for="sucursal">Sucursal</label>
+        <select id="sucursal" formControlName="sucursalId">
+          <option [ngValue]="null">Selecciona una sucursal</option>
+          @for (sucursal of sucursales(); track sucursal.id) {
+            <option [ngValue]="sucursal.id">{{ sucursal.nombre }} - {{ sucursal.ciudad }}</option>
+          }
+        </select>
+        @if (form.controls.sucursalId.touched && form.controls.sucursalId.invalid) {
+          <p class="error-campo">Selecciona una sucursal.</p>
+        }
+      </div>
+
+      <button type="submit" [disabled]="enviando()">
+        {{ enviando() ? 'Agendando...' : 'Agendar turno' }}
+      </button>
+
+      @if (errorEnvio()) {
+        <p class="error-api">{{ errorEnvio() }}</p>
+      }
+    </form>
+  </section>
+
+  <section class="lista-turnos">
+    <h2>Turnos</h2>
+
+    @if (errorCarga()) {
+      <p class="error-api">{{ errorCarga() }}</p>
+    }
+
+    @if (cargandoTurnos()) {
+      <p>Cargando turnos...</p>
+    } @else if (turnos().length === 0) {
+      <p>No hay turnos registrados todavía.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>N.º turno</th>
+            <th>Cédula</th>
+            <th>Sucursal</th>
+            <th>Estado</th>
+            <th>Expira</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (turno of turnos(); track turno.id) {
+            <tr>
+              <td>{{ turno.numeroTurno }}</td>
+              <td>{{ turno.cedulaCliente }}</td>
+              <td>{{ turno.sucursalNombre }}</td>
+              <td>
+                {{ estadoMostrado(turno) }}
+                @if (estadoMostrado(turno) === 'Pendiente') {
+                  <span class="cuenta-regresiva">({{ tiempoRestante(turno) }})</span>
+                }
+              </td>
+              <td>{{ turno.fechaHoraExpiracion | date: 'HH:mm:ss' }}</td>
+              <td>
+                @if (estadoMostrado(turno) === 'Pendiente') {
+                  <button type="button" (click)="activar(turno)">Activar</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+</main>

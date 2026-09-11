@@ -1,6 +1,35 @@
 @Amaris.Turnos.Api_HostAddress = http://localhost:5227
 
-GET {{Amaris.Turnos.Api_HostAddress}}/weatherforecast/
+GET {{Amaris.Turnos.Api_HostAddress}}/api/sucursales
 Accept: application/json
+
+###
+
+POST {{Amaris.Turnos.Api_HostAddress}}/api/turnos
+Content-Type: application/json
+
+{
+  "cedula": "1234567890",
+  "sucursalId": 1
+}
+
+###
+
+GET {{Amaris.Turnos.Api_HostAddress}}/api/turnos
+Accept: application/json
+
+###
+
+GET {{Amaris.Turnos.Api_HostAddress}}/api/turnos?sucursalId=1&estado=Pendiente
+Accept: application/json
+
+###
+
+GET {{Amaris.Turnos.Api_HostAddress}}/api/turnos/1
+Accept: application/json
+
+###
+
+POST {{Amaris.Turnos.Api_HostAddress}}/api/turnos/1/activar
 
 ###

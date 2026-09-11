@@ -1,0 +1,46 @@
+.pagina {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  font-family: system-ui, sans-serif;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+  max-width: 320px;
+}
+
+.error-campo {
+  color: #b3261e;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.error-api {
+  color: #b3261e;
+  font-weight: 600;
+}
+
+.formulario-agendar {
+  margin-bottom: 2.5rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.cuenta-regresiva {
+  color: #666;
+  font-size: 0.85rem;
+}
