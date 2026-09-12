@@ -44,13 +44,19 @@ export class AgendarTurno implements OnInit {
   protected readonly errorEnvio = signal<string | null>(null);
   protected readonly errorCarga = signal<string | null>(null);
   protected readonly ahora = signal(new Date());
+  protected readonly turnoConfirmado = signal<Turno | null>(null);
+
+  private temporizadorConfirmacion: ReturnType<typeof setTimeout> | undefined;
 
   ngOnInit(): void {
     this.cargarSucursales();
     this.cargarTurnos();
 
     const intervaloReloj = setInterval(() => this.ahora.set(new Date()), 1000);
-    this.destroyRef.onDestroy(() => clearInterval(intervaloReloj));
+    this.destroyRef.onDestroy(() => {
+      clearInterval(intervaloReloj);
+      clearTimeout(this.temporizadorConfirmacion);
+    });
   }
 
   protected agendar(): void {
@@ -62,11 +68,13 @@ export class AgendarTurno implements OnInit {
     const { cedula, sucursalId } = this.form.getRawValue();
     this.enviando.set(true);
     this.errorEnvio.set(null);
+    this.ocultarConfirmacion();
 
     this.turnosService.crear({ cedula, sucursalId: sucursalId! }).subscribe({
-      next: () => {
+      next: (turno) => {
         this.enviando.set(false);
         this.form.reset({ cedula: '', sucursalId: null });
+        this.mostrarConfirmacion(turno);
         this.cargarTurnos();
       },
       error: (error: HttpErrorResponse) => {
@@ -74,6 +82,10 @@ export class AgendarTurno implements OnInit {
         this.errorEnvio.set(this.extraerMensajeError(error));
       },
     });
+  }
+
+  protected cerrarConfirmacion(): void {
+    this.ocultarConfirmacion();
   }
 
   protected cerrarSesion(): void {
@@ -96,6 +108,21 @@ export class AgendarTurno implements OnInit {
     return new Date(turno.fechaHoraExpiracion) <= this.ahora() ? 'Expirado' : 'Pendiente';
   }
 
+  protected claseEstado(turno: Turno): string {
+    switch (this.estadoMostrado(turno)) {
+      case 'Pendiente':
+        return 'badge-pendiente';
+      case 'Activado':
+        return 'badge-activado';
+      case 'Expirado':
+        return 'badge-expirado';
+      case 'Cancelado':
+        return 'badge-cancelado';
+      default:
+        return '';
+    }
+  }
+
   protected tiempoRestante(turno: Turno): string {
     const milisegundosRestantes = new Date(turno.fechaHoraExpiracion).getTime() - this.ahora().getTime();
     if (milisegundosRestantes <= 0) {
@@ -106,6 +133,17 @@ export class AgendarTurno implements OnInit {
     const minutos = Math.floor(segundosTotales / 60);
     const segundos = segundosTotales % 60;
     return `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+  }
+
+  private mostrarConfirmacion(turno: Turno): void {
+    this.turnoConfirmado.set(turno);
+    clearTimeout(this.temporizadorConfirmacion);
+    this.temporizadorConfirmacion = setTimeout(() => this.turnoConfirmado.set(null), 8000);
+  }
+
+  private ocultarConfirmacion(): void {
+    clearTimeout(this.temporizadorConfirmacion);
+    this.turnoConfirmado.set(null);
   }
 
   private cargarSucursales(): void {

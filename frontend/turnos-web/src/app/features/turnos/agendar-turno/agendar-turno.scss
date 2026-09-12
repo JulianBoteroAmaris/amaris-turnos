@@ -30,6 +30,23 @@
   font-weight: 600;
 }
 
+.confirmacion-turno {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #e6f4ea;
+  border: 1px solid #2e7d32;
+  color: #1b5e20;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.confirmacion-turno p {
+  margin: 0;
+}
+
 .formulario-agendar {
   margin-bottom: 2.5rem;
 }
@@ -49,4 +66,32 @@ td {
 .cuenta-regresiva {
   color: #666;
   font-size: 0.85rem;
+}
+
+.badge-estado {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badge-pendiente {
+  background: #fff3cd;
+  color: #8a6500;
+}
+
+.badge-activado {
+  background: #e6f4ea;
+  color: #1b5e20;
+}
+
+.badge-expirado {
+  background: #eceff1;
+  color: #546e7a;
+}
+
+.badge-cancelado {
+  background: #eceff1;
+  color: #616161;
 }

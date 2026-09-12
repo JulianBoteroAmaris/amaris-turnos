@@ -7,6 +7,16 @@
   <section class="formulario-agendar">
     <h2>Agendar turno</h2>
 
+    @if (turnoConfirmado(); as turno) {
+      <div class="confirmacion-turno">
+        <p>
+          Turno <strong>#{{ turno.numeroTurno }}</strong> agendado con éxito en
+          <strong>{{ turno.sucursalNombre }}</strong>. Tienes 15 minutos para activarlo.
+        </p>
+        <button type="button" (click)="cerrarConfirmacion()">Cerrar</button>
+      </div>
+    }
+
     <form [formGroup]="form" (ngSubmit)="agendar()">
       <div class="campo">
         <label for="cedula">Cédula</label>
@@ -69,7 +79,7 @@
               <td>{{ turno.cedulaCliente }}</td>
               <td>{{ turno.sucursalNombre }}</td>
               <td>
-                {{ estadoMostrado(turno) }}
+                <span class="badge-estado" [class]="claseEstado(turno)">{{ estadoMostrado(turno) }}</span>
                 @if (estadoMostrado(turno) === 'Pendiente') {
                   <span class="cuenta-regresiva">({{ tiempoRestante(turno) }})</span>
                 }
