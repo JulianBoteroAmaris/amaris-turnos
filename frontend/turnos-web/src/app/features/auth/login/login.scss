@@ -1,0 +1,24 @@
+.pagina-login {
+  max-width: 320px;
+  margin: 4rem auto 0;
+  padding: 2rem 1rem;
+  font-family: system-ui, sans-serif;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.error-campo {
+  color: #b3261e;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.error-api {
+  color: #b3261e;
+  font-weight: 600;
+}

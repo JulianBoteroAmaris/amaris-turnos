@@ -1,3 +1,4 @@
+using Amaris.Turnos.Application.Auth;
 using Amaris.Turnos.Application.Sucursales;
 using Amaris.Turnos.Application.Turnos;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +11,7 @@ public static class DependencyInjection
     {
         services.AddScoped<ITurnoService, TurnoService>();
         services.AddScoped<ISucursalService, SucursalService>();
+        services.AddScoped<IAuthService, AuthService>();
 
         return services;
     }

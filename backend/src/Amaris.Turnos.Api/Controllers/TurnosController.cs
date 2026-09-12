@@ -2,12 +2,14 @@ using Amaris.Turnos.Api.Turnos;
 using Amaris.Turnos.Application.Interfaces;
 using Amaris.Turnos.Application.Turnos;
 using Amaris.Turnos.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Amaris.Turnos.Api.Controllers;
 
 [ApiController]
 [Route("api/turnos")]
+[Authorize]
 public class TurnosController : ControllerBase
 {
     private readonly ITurnoService _turnoService;

@@ -11,6 +11,7 @@ public class TurnosDbContext : DbContext
 
     public DbSet<Turno> Turnos => Set<Turno>();
     public DbSet<Sucursal> Sucursales => Set<Sucursal>();
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -2,8 +2,10 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { Router, provideRouter } from '@angular/router';
 
 import { environment } from '../../../../environments/environment';
+import { AuthService } from '../../../core/auth.service';
 import { Sucursal } from '../../../shared/models/sucursal.model';
 import { Turno } from '../../../shared/models/turno.model';
 import { AgendarTurno } from './agendar-turno';
@@ -11,6 +13,8 @@ import { AgendarTurno } from './agendar-turno';
 describe('AgendarTurno', () => {
   let fixture: ComponentFixture<AgendarTurno>;
   let httpMock: HttpTestingController;
+  let router: Router;
+  let authService: AuthService;
 
   const sucursales: Sucursal[] = [
     { id: 1, nombre: 'Sucursal Centro', direccion: 'Calle 10', ciudad: 'Bogotá', activa: true },
@@ -49,13 +53,17 @@ describe('AgendarTurno', () => {
   }
 
   beforeEach(async () => {
+    sessionStorage.clear();
+
     await TestBed.configureTestingModule({
       imports: [AgendarTurno],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AgendarTurno);
     httpMock = TestBed.inject(HttpTestingController);
+    router = TestBed.inject(Router);
+    authService = TestBed.inject(AuthService);
 
     fixture.detectChanges();
     flushCargaInicial();
@@ -64,6 +72,7 @@ describe('AgendarTurno', () => {
 
   afterEach(() => {
     httpMock.verify();
+    sessionStorage.clear();
   });
 
   it('debería crearse', () => {
@@ -122,5 +131,18 @@ describe('AgendarTurno', () => {
 
     const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(texto).toContain('La cédula ya tiene 5 turnos solicitados hoy.');
+  });
+
+  it('cierra la sesión y navega a login al hacer clic en "Cerrar sesión"', () => {
+    const navigateSpy = vi.spyOn(router, 'navigateByUrl');
+    authService.estaAutenticado.set(true);
+
+    const botonCerrarSesion: HTMLButtonElement = fixture.debugElement.query(
+      By.css('.encabezado button'),
+    ).nativeElement;
+    botonCerrarSesion.click();
+
+    expect(authService.estaAutenticado()).toBe(false);
+    expect(navigateSpy).toHaveBeenCalledWith('/login');
   });
 });

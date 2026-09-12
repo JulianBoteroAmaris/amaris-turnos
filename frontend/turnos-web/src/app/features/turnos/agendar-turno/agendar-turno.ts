@@ -9,7 +9,9 @@ import {
   signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
+import { AuthService } from '../../../core/auth.service';
 import { SucursalesService } from '../../../core/sucursales.service';
 import { TurnosService } from '../../../core/turnos.service';
 import { Sucursal } from '../../../shared/models/sucursal.model';
@@ -25,6 +27,8 @@ import { Turno } from '../../../shared/models/turno.model';
 export class AgendarTurno implements OnInit {
   private readonly turnosService = inject(TurnosService);
   private readonly sucursalesService = inject(SucursalesService);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -70,6 +74,11 @@ export class AgendarTurno implements OnInit {
         this.errorEnvio.set(this.extraerMensajeError(error));
       },
     });
+  }
+
+  protected cerrarSesion(): void {
+    this.authService.logout();
+    this.router.navigateByUrl('/login');
   }
 
   protected activar(turno: Turno): void {

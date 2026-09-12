@@ -1,4 +1,6 @@
+using Amaris.Turnos.Application.Auth;
 using Amaris.Turnos.Application.Interfaces;
+using Amaris.Turnos.Infrastructure.Auth;
 using Amaris.Turnos.Infrastructure.Persistence;
 using Amaris.Turnos.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +20,12 @@ public static class DependencyInjection
 
         services.AddScoped<ITurnoRepository, TurnoRepository>();
         services.AddScoped<ISucursalRepository, SucursalRepository>();
+        services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
+        services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+        services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SeccionConfiguracion));
 
         return services;
     }

@@ -5,6 +5,12 @@
   font-family: system-ui, sans-serif;
 }
 
+.encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .campo {
   display: flex;
   flex-direction: column;
