@@ -1,43 +1,101 @@
 <main class="pagina-login">
-  <h1>Iniciar sesión</h1>
-
-  @if (sesionExpirada()) {
-    <p class="error-api">Tu sesión expiró, inicia sesión de nuevo.</p>
-  }
-
-  <form [formGroup]="form" (ngSubmit)="iniciarSesion()">
-    <div class="campo">
-      <label for="nombreUsuario">Usuario</label>
-      <input
-        id="nombreUsuario"
-        type="text"
-        formControlName="nombreUsuario"
-        autocomplete="username"
-      />
-      @if (form.controls.nombreUsuario.touched && form.controls.nombreUsuario.invalid) {
-        <p class="error-campo">Ingresa el usuario.</p>
-      }
+  <section class="panel-navy" aria-hidden="true">
+    <div class="marca">
+      <div class="marca__icono"><img src="mantu.png" alt="Mantu" /></div>
+      <div class="marca__nombre">AMARIS TURNOS</div>
     </div>
 
-    <div class="campo">
-      <label for="password">Contraseña</label>
-      <input
-        id="password"
-        type="password"
-        formControlName="password"
-        autocomplete="current-password"
-      />
-      @if (form.controls.password.touched && form.controls.password.invalid) {
-        <p class="error-campo">Ingresa la contraseña.</p>
-      }
+    <div class="globo-wrap">
+      <canvas #globoCanvas class="globo"></canvas>
     </div>
 
-    <button type="submit" [disabled]="enviando()">
-      {{ enviando() ? 'Ingresando...' : 'Ingresar' }}
-    </button>
+    <div class="panel-navy__mensaje">
+      <div class="panel-navy__titulo">Tu turno,<br />en un solo lugar.</div>
+    </div>
+  </section>
 
-    @if (errorLogin()) {
-      <p class="error-api">{{ errorLogin() }}</p>
-    }
-  </form>
+  <section class="panel-crema">
+    <div class="tarjeta">
+      <div class="tarjeta__cuerpo">
+        <div class="tarjeta__encabezado">
+          <div class="tarjeta__marca">
+            <div class="tarjeta__marca-icono"><img src="mantu.png" alt="Mantu" /></div>
+            <span>Amaris Turnos</span>
+          </div>
+        </div>
+
+        <h1 class="tarjeta__titulo">
+          {{ modoAdministrador() ? 'Acceso administrador' : 'Bienvenido de nuevo' }}
+        </h1>
+        <p class="tarjeta__subtitulo">
+          {{
+            modoAdministrador()
+              ? 'Panel del equipo Amaris.'
+              : 'Inicia sesión para gestionar tu turno.'
+          }}
+        </p>
+
+        @if (sesionExpirada()) {
+          <p class="sello-expirado">Sesión expirada</p>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="iniciarSesion()">
+          <div class="campo">
+            <label for="nombreUsuario">Usuario</label>
+            <input
+              id="nombreUsuario"
+              class="campo__input"
+              type="text"
+              formControlName="nombreUsuario"
+              autocomplete="username"
+              placeholder="usuario.turnos"
+            />
+            @if (form.controls.nombreUsuario.touched && form.controls.nombreUsuario.invalid) {
+              <p class="campo__error">Ingresa el usuario.</p>
+            }
+          </div>
+
+          <div class="campo">
+            <label for="password">Contraseña</label>
+            <input
+              id="password"
+              class="campo__input"
+              type="password"
+              formControlName="password"
+              autocomplete="current-password"
+              placeholder="••••••••"
+            />
+            @if (form.controls.password.touched && form.controls.password.invalid) {
+              <p class="campo__error">Ingresa la contraseña.</p>
+            }
+          </div>
+
+          <button type="submit" class="boton-ingresar" [disabled]="enviando()">
+            {{ enviando() ? 'Ingresando...' : 'Ingresar' }}
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M5 12h14" />
+              <path d="M13 6l6 6-6 6" />
+            </svg>
+          </button>
+
+          @if (errorLogin()) {
+            <p class="alerta">{{ errorLogin() }}</p>
+          }
+        </form>
+
+        <button type="button" class="enlace-modo" (click)="alternarModoAdministrador()">
+          {{ modoAdministrador() ? 'Volver a acceso de cliente' : 'Acceso administrador' }}
+        </button>
+      </div>
+    </div>
+  </section>
 </main>

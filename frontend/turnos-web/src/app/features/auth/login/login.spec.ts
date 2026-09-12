@@ -76,9 +76,21 @@ describe('Login', () => {
 
     const req = httpMock.expectOne(`${environment.apiUrl}/auth/login`);
     expect(req.request.body).toEqual({ nombreUsuario: 'admin', password: 'Admin123!' });
-    req.flush({ token: 'token-de-prueba' });
+    req.flush({ token: 'token-de-prueba', rol: 'Asesor' });
 
     expect(navigateSpy).toHaveBeenCalledWith('/');
+  });
+
+  it('navega a administrar-turnos cuando el login es exitoso y el rol es Administrador', () => {
+    const navigateSpy = vi.spyOn(router, 'navigateByUrl');
+
+    llenarFormulario('admin', 'Admin123!');
+    enviarFormulario();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/auth/login`);
+    req.flush({ token: 'token-de-prueba', rol: 'Administrador' });
+
+    expect(navigateSpy).toHaveBeenCalledWith('/administrar-turnos');
   });
 
   it('muestra el error de la API cuando las credenciales son inválidas', () => {
@@ -91,5 +103,18 @@ describe('Login', () => {
     fixture.detectChanges();
     const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(texto).toContain('Credenciales inválidas.');
+  });
+
+  it('alterna el texto cosmético del modo administrador al hacer clic en el enlace', () => {
+    const textoActual = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(textoActual()).toContain('Bienvenido de nuevo');
+
+    const enlace: HTMLButtonElement = fixture.debugElement.query(
+      By.css('.enlace-modo'),
+    ).nativeElement;
+    enlace.click();
+    fixture.detectChanges();
+
+    expect(textoActual()).toContain('Acceso administrador');
   });
 });

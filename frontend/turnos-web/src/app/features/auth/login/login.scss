@@ -1,24 +1,322 @@
+$navy-950: #0a0f1e;
+$navy-900: #0d1426;
+$navy-800: #131c33;
+$navy-700: #171b24;
+$navy-600: #262d42;
+$accent: #4fc3e0;
+$accent-dark: #1f8fae;
+$cream-50: #fffefa;
+$cream-200: #f2ecdd;
+$brown: #7a735e;
+$label: #9a8f72;
+$note: #b7ac8e;
+$input-border: #e3dac1;
+$placeholder: #c6bc9f;
+$error: #b3261e;
+
+* {
+  box-sizing: border-box;
+}
+
+%fuente-mono {
+  font-family: 'Space Mono', monospace;
+}
+
+:host {
+  display: block;
+  font-family: 'Archivo', system-ui, sans-serif;
+}
+
 .pagina-login {
-  max-width: 320px;
-  margin: 4rem auto 0;
-  padding: 2rem 1rem;
-  font-family: system-ui, sans-serif;
+  display: flex;
+  min-height: 100vh;
+}
+
+.panel-navy {
+  flex: 1 1 46%;
+  max-width: 640px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px 56px 32px;
+  background: linear-gradient(160deg, $navy-800 0%, $navy-900 55%, $navy-950 100%);
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 1;
+}
+
+.marca__icono {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #ffffff;
+  padding: 7px;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.marca__nombre {
+  font-weight: 800;
+  font-size: 19px;
+  color: #f5f1e6;
+}
+
+.globo-wrap {
+  position: relative;
+  width: min(420px, 90%);
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+
+.globo {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.panel-navy__titulo {
+  font-weight: 800;
+  font-size: 30px;
+  line-height: 1.15;
+  color: #f5f1e6;
+}
+
+.panel-crema {
+  flex: 1 1 54%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 40px 24px;
+  background: $cream-200;
+}
+
+@keyframes emision {
+  from {
+    opacity: 0;
+    transform: translateY(-28px) rotate(-2deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tarjeta {
+  width: 100%;
+  max-width: 440px;
+  background: $cream-50;
+  border-radius: 16px;
+  box-shadow: 0 30px 70px -18px rgba(23, 20, 10, 0.28);
+  position: relative;
+  z-index: 1;
+  animation: emision 520ms cubic-bezier(0.22, 1.2, 0.36, 1);
+}
+
+.tarjeta__cuerpo {
+  padding: 32px 36px 36px;
+}
+
+.tarjeta__encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 26px;
+}
+
+.tarjeta__marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  color: $navy-700;
+}
+
+.tarjeta__marca-icono {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ffffff;
+  padding: 5px;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.tarjeta__titulo {
+  font-weight: 800;
+  font-size: 25px;
+  color: $navy-700;
+  margin: 0 0 6px;
+}
+
+.tarjeta__subtitulo {
+  font-size: 14px;
+  color: $brown;
+  margin: 0 0 22px;
+}
+
+.alerta {
+  color: $error;
+  font-weight: 600;
+  font-size: 13px;
+  margin: 0 0 16px;
+}
+
+@keyframes sello-entrada {
+  0% {
+    opacity: 0;
+    transform: rotate(-4deg) scale(2.2);
+  }
+
+  70% {
+    opacity: 1;
+    transform: rotate(-4deg) scale(0.94);
+  }
+
+  100% {
+    opacity: 1;
+    transform: rotate(-4deg) scale(1);
+  }
+}
+
+.sello-expirado {
+  display: inline-block;
+  margin: 0 0 16px;
+  padding: 5px 14px;
+  border: 2px solid $error;
+  border-radius: 6px;
+  @extend %fuente-mono;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $error;
+  transform: rotate(-4deg);
+  animation: sello-entrada 380ms cubic-bezier(0.3, 1.6, 0.5, 1);
 }
 
 .campo {
+  margin-bottom: 18px;
+
+  label {
+    display: block;
+    @extend %fuente-mono;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    color: $label;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+}
+
+.campo__input {
+  width: 100%;
+  border: none;
+  border-bottom: 1.5px solid $input-border;
+  background: transparent;
+  font-size: 16px;
+  color: $navy-700;
+  padding: 6px 2px 10px;
+  outline: none;
+  transition: border-color 0.15s ease;
+
+  &::placeholder {
+    color: $placeholder;
+  }
+
+  &:focus {
+    border-bottom-color: $accent-dark;
+  }
+}
+
+.campo__error {
+  color: $error;
+  font-size: 0.8rem;
+  margin: 6px 0 0;
+}
+
+.boton-ingresar {
+  width: 100%;
+  background: $navy-700;
+  color: #f5efdd;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 15px;
+  border: none;
+  border-radius: 8px;
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  margin-bottom: 1rem;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-top: 6px;
+
+  svg {
+    stroke: #ffffff;
+  }
+
+  &:hover:not(:disabled) {
+    background: $navy-600;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
-.error-campo {
-  color: #b3261e;
-  font-size: 0.85rem;
-  margin: 0;
+.enlace-modo {
+  display: block;
+  margin: 16px auto 0;
+  background: none;
+  border: none;
+  @extend %fuente-mono;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: $note;
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:hover {
+    color: $accent-dark;
+  }
 }
 
-.error-api {
-  color: #b3261e;
-  font-weight: 600;
+@media (max-width: 900px) {
+  .panel-navy {
+    display: none;
+  }
+
+  .panel-crema {
+    padding: 32px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta,
+  .sello-expirado {
+    animation: none;
+  }
 }
