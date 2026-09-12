@@ -93,6 +93,7 @@ public class TurnosController : ControllerBase
     }
 
     [HttpPost("{id:int}/cancelar")]
+    [Authorize(Roles = nameof(RolUsuario.Administrador))]
     public async Task<ActionResult<TurnoResponse>> Cancelar(int id, CancellationToken cancellationToken)
     {
         var resultado = await _turnoService.CancelarTurnoAsync(id, cancellationToken);

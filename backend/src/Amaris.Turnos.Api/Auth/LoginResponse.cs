@@ -1,3 +1,3 @@
 namespace Amaris.Turnos.Api.Auth;
 
-public record LoginResponse(string Token);
+public record LoginResponse(string Token, string Rol);

@@ -31,6 +31,6 @@ public class AuthService : IAuthService
         }
 
         var token = _jwtTokenGenerator.GenerarToken(usuario);
-        return LoginResultado.Exitoso(token);
+        return LoginResultado.Exitoso(token, usuario.Rol);
     }
 }

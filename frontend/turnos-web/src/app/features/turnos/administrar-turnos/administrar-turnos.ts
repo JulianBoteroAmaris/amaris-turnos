@@ -1,91 +1,36 @@
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../../core/auth.service';
-import { SucursalesService } from '../../../core/sucursales.service';
 import { TurnosService } from '../../../core/turnos.service';
-import { Sucursal } from '../../../shared/models/sucursal.model';
 import { Turno } from '../../../shared/models/turno.model';
 
 @Component({
-  selector: 'app-agendar-turno',
-  imports: [ReactiveFormsModule, DatePipe],
-  templateUrl: './agendar-turno.html',
-  styleUrl: './agendar-turno.scss',
+  selector: 'app-administrar-turnos',
+  imports: [DatePipe],
+  templateUrl: './administrar-turnos.html',
+  styleUrl: './administrar-turnos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AgendarTurno implements OnInit {
+export class AdministrarTurnos implements OnInit {
   private readonly turnosService = inject(TurnosService);
-  private readonly sucursalesService = inject(SucursalesService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly formBuilder = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly form = this.formBuilder.nonNullable.group({
-    cedula: ['', [Validators.required, Validators.pattern(/^[0-9]{6,10}$/)]],
-    sucursalId: [null as number | null, [Validators.required]],
-  });
-
-  protected readonly sucursales = signal<Sucursal[]>([]);
   protected readonly turnos = signal<Turno[]>([]);
   protected readonly cargandoTurnos = signal(false);
-  protected readonly enviando = signal(false);
-  protected readonly errorEnvio = signal<string | null>(null);
   protected readonly errorCarga = signal<string | null>(null);
+  protected readonly errorAccion = signal<string | null>(null);
   protected readonly ahora = signal(new Date());
-  protected readonly turnoConfirmado = signal<Turno | null>(null);
-
-  private temporizadorConfirmacion: ReturnType<typeof setTimeout> | undefined;
 
   ngOnInit(): void {
-    this.cargarSucursales();
     this.cargarTurnos();
 
     const intervaloReloj = setInterval(() => this.ahora.set(new Date()), 1000);
-    this.destroyRef.onDestroy(() => {
-      clearInterval(intervaloReloj);
-      clearTimeout(this.temporizadorConfirmacion);
-    });
-  }
-
-  protected agendar(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    const { cedula, sucursalId } = this.form.getRawValue();
-    this.enviando.set(true);
-    this.errorEnvio.set(null);
-    this.ocultarConfirmacion();
-
-    this.turnosService.crear({ cedula, sucursalId: sucursalId! }).subscribe({
-      next: (turno) => {
-        this.enviando.set(false);
-        this.form.reset({ cedula: '', sucursalId: null });
-        this.mostrarConfirmacion(turno);
-        this.cargarTurnos();
-      },
-      error: (error: HttpErrorResponse) => {
-        this.enviando.set(false);
-        this.errorEnvio.set(this.extraerMensajeError(error));
-      },
-    });
-  }
-
-  protected cerrarConfirmacion(): void {
-    this.ocultarConfirmacion();
+    this.destroyRef.onDestroy(() => clearInterval(intervaloReloj));
   }
 
   protected cerrarSesion(): void {
@@ -96,7 +41,14 @@ export class AgendarTurno implements OnInit {
   protected activar(turno: Turno): void {
     this.turnosService.activar(turno.id).subscribe({
       next: () => this.cargarTurnos(),
-      error: (error: HttpErrorResponse) => this.errorEnvio.set(this.extraerMensajeError(error)),
+      error: (error: HttpErrorResponse) => this.errorAccion.set(this.extraerMensajeError(error)),
+    });
+  }
+
+  protected cancelar(turno: Turno): void {
+    this.turnosService.cancelar(turno.id).subscribe({
+      next: () => this.cargarTurnos(),
+      error: (error: HttpErrorResponse) => this.errorAccion.set(this.extraerMensajeError(error)),
     });
   }
 
@@ -133,24 +85,6 @@ export class AgendarTurno implements OnInit {
     const minutos = Math.floor(segundosTotales / 60);
     const segundos = segundosTotales % 60;
     return `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
-  }
-
-  private mostrarConfirmacion(turno: Turno): void {
-    this.turnoConfirmado.set(turno);
-    clearTimeout(this.temporizadorConfirmacion);
-    this.temporizadorConfirmacion = setTimeout(() => this.turnoConfirmado.set(null), 8000);
-  }
-
-  private ocultarConfirmacion(): void {
-    clearTimeout(this.temporizadorConfirmacion);
-    this.turnoConfirmado.set(null);
-  }
-
-  private cargarSucursales(): void {
-    this.sucursalesService.obtener().subscribe({
-      next: (sucursales) => this.sucursales.set(sucursales),
-      error: (error: HttpErrorResponse) => this.errorCarga.set(this.extraerMensajeError(error)),
-    });
   }
 
   private cargarTurnos(): void {

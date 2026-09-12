@@ -1,6 +1,7 @@
 using Amaris.Turnos.Application.Auth;
 using Amaris.Turnos.Application.Interfaces;
 using Amaris.Turnos.Domain.Entities;
+using Amaris.Turnos.Domain.Enums;
 using NSubstitute;
 using Shouldly;
 
@@ -17,7 +18,7 @@ public class AuthServiceTests
     [Fact]
     public async Task LoginAsync_ConCredencialesValidas_RetornaTokenExitoso()
     {
-        var usuario = new Usuario { Id = 1, NombreUsuario = "admin", PasswordHash = "hash-guardado" };
+        var usuario = new Usuario { Id = 1, NombreUsuario = "admin", PasswordHash = "hash-guardado", Rol = RolUsuario.Administrador };
         _usuarioRepository.ObtenerPorNombreUsuarioAsync("admin", Arg.Any<CancellationToken>())
             .Returns(usuario);
         _passwordHasher.VerificarHash("hash-guardado", "Admin123!").Returns(true);
@@ -27,6 +28,7 @@ public class AuthServiceTests
 
         resultado.EsExitoso.ShouldBeTrue();
         resultado.Token.ShouldBe("token-generado");
+        resultado.Rol.ShouldBe(RolUsuario.Administrador);
         resultado.Error.ShouldBeNull();
     }
 
@@ -46,7 +48,7 @@ public class AuthServiceTests
     [Fact]
     public async Task LoginAsync_ConPasswordIncorrecta_RetornaCredencialesInvalidas()
     {
-        var usuario = new Usuario { Id = 1, NombreUsuario = "admin", PasswordHash = "hash-guardado" };
+        var usuario = new Usuario { Id = 1, NombreUsuario = "admin", PasswordHash = "hash-guardado", Rol = RolUsuario.Administrador };
         _usuarioRepository.ObtenerPorNombreUsuarioAsync("admin", Arg.Any<CancellationToken>())
             .Returns(usuario);
         _passwordHasher.VerificarHash("hash-guardado", "incorrecta").Returns(false);

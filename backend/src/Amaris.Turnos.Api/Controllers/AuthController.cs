@@ -32,6 +32,6 @@ public class AuthController : ControllerBase
             };
         }
 
-        return Ok(new LoginResponse(resultado.Token!));
+        return Ok(new LoginResponse(resultado.Token!, resultado.Rol!.Value.ToString()));
     }
 }

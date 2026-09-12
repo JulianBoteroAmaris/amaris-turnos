@@ -1,4 +1,5 @@
 using Amaris.Turnos.Domain.Entities;
+using Amaris.Turnos.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -20,6 +21,11 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
             .IsRequired()
             .HasMaxLength(200);
 
+        builder.Property(u => u.Rol)
+            .IsRequired()
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
         builder.HasIndex(u => u.NombreUsuario)
             .IsUnique();
 
@@ -28,13 +34,15 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
             {
                 Id = 1,
                 NombreUsuario = "admin",
-                PasswordHash = "AQAAAAIAAYagAAAAEJoP1M+VNn2T9GGi8fB1d/a2wsszc1q1Y258kc4CEpU8K3Y9GOuH9zABt00uTAH6uw=="
+                PasswordHash = "AQAAAAIAAYagAAAAEJoP1M+VNn2T9GGi8fB1d/a2wsszc1q1Y258kc4CEpU8K3Y9GOuH9zABt00uTAH6uw==",
+                Rol = RolUsuario.Administrador
             },
             new Usuario
             {
                 Id = 2,
                 NombreUsuario = "asesor",
-                PasswordHash = "AQAAAAIAAYagAAAAECZ2l4KsS9ctj9ZlkbxuCUuNxFjgjIsjRmGsQEHWtU9shTE4iTv/0+coeT8+TDe8ig=="
+                PasswordHash = "AQAAAAIAAYagAAAAECZ2l4KsS9ctj9ZlkbxuCUuNxFjgjIsjRmGsQEHWtU9shTE4iTv/0+coeT8+TDe8ig==",
+                Rol = RolUsuario.Asesor
             }
         );
     }
