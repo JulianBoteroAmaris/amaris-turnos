@@ -1,6 +1,10 @@
 <main class="pagina-login">
   <h1>Iniciar sesión</h1>
 
+  @if (sesionExpirada()) {
+    <p class="error-api">Tu sesión expiró, inicia sesión de nuevo.</p>
+  }
+
   <form [formGroup]="form" (ngSubmit)="iniciarSesion()">
     <div class="campo">
       <label for="nombreUsuario">Usuario</label>

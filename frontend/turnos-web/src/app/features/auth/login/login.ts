@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { AuthService } from '../../../core/auth.service';
 
@@ -16,6 +16,7 @@ export class Login {
   private readonly authService = inject(AuthService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly form = this.formBuilder.nonNullable.group({
     nombreUsuario: ['', [Validators.required]],
@@ -24,6 +25,9 @@ export class Login {
 
   protected readonly enviando = signal(false);
   protected readonly errorLogin = signal<string | null>(null);
+  protected readonly sesionExpirada = signal(
+    this.route.snapshot.queryParamMap.get('sesionExpirada') === 'true',
+  );
 
   protected iniciarSesion(): void {
     if (this.form.invalid) {
@@ -33,6 +37,7 @@ export class Login {
 
     this.enviando.set(true);
     this.errorLogin.set(null);
+    this.sesionExpirada.set(false);
 
     this.authService.login(this.form.getRawValue()).subscribe({
       next: () => {
