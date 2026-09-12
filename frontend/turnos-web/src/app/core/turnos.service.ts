@@ -40,4 +40,8 @@ export class TurnosService {
   activar(id: number): Observable<Turno> {
     return this.http.post<Turno>(`${this.baseUrl}/${id}/activar`, {});
   }
+
+  cancelar(id: number): Observable<Turno> {
+    return this.http.post<Turno>(`${this.baseUrl}/${id}/cancelar`, {});
+  }
 }

@@ -100,6 +100,13 @@ export class AgendarTurno implements OnInit {
     });
   }
 
+  protected cancelar(turno: Turno): void {
+    this.turnosService.cancelar(turno.id).subscribe({
+      next: () => this.cargarTurnos(),
+      error: (error: HttpErrorResponse) => this.errorEnvio.set(this.extraerMensajeError(error)),
+    });
+  }
+
   protected estadoMostrado(turno: Turno): string {
     if (turno.estado !== 'Pendiente') {
       return turno.estado;

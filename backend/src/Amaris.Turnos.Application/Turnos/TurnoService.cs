@@ -111,4 +111,25 @@ public class TurnoService : ITurnoService
 
         return ActivarTurnoResultado.Exitoso(turno);
     }
+
+    public async Task<CancelarTurnoResultado> CancelarTurnoAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var turno = await _turnoRepository.ObtenerPorIdAsync(id, cancellationToken);
+        if (turno is null)
+        {
+            return CancelarTurnoResultado.Fallido(CancelarTurnoError.NoEncontrado, "El turno no existe.");
+        }
+
+        if (turno.Estado != EstadoTurno.Pendiente)
+        {
+            return CancelarTurnoResultado.Fallido(
+                CancelarTurnoError.EstadoNoPendiente,
+                "El turno no está en estado pendiente y no puede cancelarse.");
+        }
+
+        turno.Estado = EstadoTurno.Cancelado;
+        await _unitOfWork.GuardarCambiosAsync(cancellationToken);
+
+        return CancelarTurnoResultado.Exitoso(turno);
+    }
 }

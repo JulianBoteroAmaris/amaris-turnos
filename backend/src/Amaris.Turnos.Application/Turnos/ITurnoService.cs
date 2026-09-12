@@ -12,4 +12,6 @@ public interface ITurnoService
     Task<Turno?> ObtenerTurnoPorIdAsync(int id, CancellationToken cancellationToken = default);
 
     Task<ActivarTurnoResultado> ActivarTurnoAsync(int id, CancellationToken cancellationToken = default);
+
+    Task<CancelarTurnoResultado> CancelarTurnoAsync(int id, CancellationToken cancellationToken = default);
 }

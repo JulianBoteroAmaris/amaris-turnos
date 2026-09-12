@@ -91,4 +91,22 @@ public class TurnosController : ControllerBase
 
         return Ok(TurnoResponse.DesdeEntidad(resultado.Turno!));
     }
+
+    [HttpPost("{id:int}/cancelar")]
+    public async Task<ActionResult<TurnoResponse>> Cancelar(int id, CancellationToken cancellationToken)
+    {
+        var resultado = await _turnoService.CancelarTurnoAsync(id, cancellationToken);
+
+        if (!resultado.EsExitoso)
+        {
+            return resultado.Error switch
+            {
+                CancelarTurnoError.NoEncontrado => NotFound(new { mensaje = resultado.MensajeError }),
+                CancelarTurnoError.EstadoNoPendiente => Conflict(new { mensaje = resultado.MensajeError }),
+                _ => Problem(resultado.MensajeError)
+            };
+        }
+
+        return Ok(TurnoResponse.DesdeEntidad(resultado.Turno!));
+    }
 }
