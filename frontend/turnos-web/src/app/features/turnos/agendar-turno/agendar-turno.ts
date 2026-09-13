@@ -33,7 +33,7 @@ export class AgendarTurno implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly form = this.formBuilder.nonNullable.group({
-    cedula: ['', [Validators.required, Validators.pattern(/^[0-9]{6,10}$/)]],
+    cedula: ['', [Validators.required, Validators.pattern(/^[0-9]{6,15}$/)]],
     sucursalId: [null as number | null, [Validators.required]],
   });
 

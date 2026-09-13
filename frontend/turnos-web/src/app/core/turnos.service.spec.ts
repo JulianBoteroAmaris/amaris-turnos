@@ -82,4 +82,15 @@ describe('TurnosService', () => {
     expect(req.request.method).toBe('POST');
     req.flush({ ...turnoEjemplo, estado: 'Activado' });
   });
+
+  it('envía POST a /turnos/{id}/cancelar al cancelar un turno', () => {
+    service.cancelar(1).subscribe((turno) => {
+      expect(turno.estado).toBe('Cancelado');
+    });
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/turnos/1/cancelar`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({});
+    req.flush({ ...turnoEjemplo, estado: 'Cancelado' });
+  });
 });
