@@ -1,59 +1,71 @@
 <main class="pagina">
-  <div class="encabezado">
-    <h1>Administrar turnos</h1>
-    <button type="button" (click)="cerrarSesion()">Cerrar sesión</button>
-  </div>
+  <header class="encabezado">
+    <div class="encabezado__marca">
+      <div class="badge-logo"><img src="mantu.png" alt="Mantu" /></div>
+      <div class="encabezado__textos">
+        <span class="encabezado__wordmark">Amaris Turnos</span>
+        <h1>Administrar turnos</h1>
+      </div>
+    </div>
+    <button type="button" class="boton-salir" (click)="cerrarSesion()">Cerrar sesión</button>
+  </header>
 
-  <section class="lista-turnos">
-    <h2>Turnos</h2>
+  <div class="contenido">
+    <section class="tarjeta lista-turnos">
+      <h2>Turnos</h2>
 
-    @if (errorCarga()) {
-      <p class="error-api">{{ errorCarga() }}</p>
-    }
+      @if (errorCarga()) {
+        <p class="error-api">{{ errorCarga() }}</p>
+      }
 
-    @if (errorAccion()) {
-      <p class="error-api">{{ errorAccion() }}</p>
-    }
+      @if (errorAccion()) {
+        <p class="error-api">{{ errorAccion() }}</p>
+      }
 
-    @if (cargandoTurnos()) {
-      <p>Cargando turnos...</p>
-    } @else if (turnos().length === 0) {
-      <p>No hay turnos registrados todavía.</p>
-    } @else {
-      <table>
-        <thead>
-          <tr>
-            <th>N.º turno</th>
-            <th>Cédula</th>
-            <th>Sucursal</th>
-            <th>Estado</th>
-            <th>Expira</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (turno of turnos(); track turno.id) {
+      @if (cargandoTurnos()) {
+        <p class="estado-vacio">Cargando turnos...</p>
+      } @else if (turnos().length === 0) {
+        <p class="estado-vacio">No hay turnos registrados todavía.</p>
+      } @else {
+        <table>
+          <thead>
             <tr>
-              <td>{{ turno.numeroTurno }}</td>
-              <td>{{ turno.cedulaCliente }}</td>
-              <td>{{ turno.sucursalNombre }}</td>
-              <td>
-                <span class="badge-estado" [class]="claseEstado(turno)">{{ estadoMostrado(turno) }}</span>
-                @if (estadoMostrado(turno) === 'Pendiente') {
-                  <span class="cuenta-regresiva">({{ tiempoRestante(turno) }})</span>
-                }
-              </td>
-              <td>{{ turno.fechaHoraExpiracion | date: 'HH:mm:ss' }}</td>
-              <td>
-                @if (estadoMostrado(turno) === 'Pendiente') {
-                  <button type="button" (click)="activar(turno)">Activar</button>
-                  <button type="button" (click)="cancelar(turno)">Cancelar</button>
-                }
-              </td>
+              <th>N.º turno</th>
+              <th>Cédula</th>
+              <th>Sucursal</th>
+              <th>Estado</th>
+              <th>Expira</th>
+              <th></th>
             </tr>
-          }
-        </tbody>
-      </table>
-    }
-  </section>
+          </thead>
+          <tbody>
+            @for (turno of turnos(); track turno.id) {
+              <tr>
+                <td>{{ turno.numeroTurno }}</td>
+                <td>{{ turno.cedulaCliente }}</td>
+                <td>{{ turno.sucursalNombre }}</td>
+                <td>
+                  <span class="badge-estado" [class]="claseEstado(turno)">{{ estadoMostrado(turno) }}</span>
+                  @if (estadoMostrado(turno) === 'Pendiente') {
+                    <span class="cuenta-regresiva">({{ tiempoRestante(turno) }})</span>
+                  }
+                </td>
+                <td>{{ turno.fechaHoraExpiracion | date: 'HH:mm:ss' }}</td>
+                <td>
+                  @if (estadoMostrado(turno) === 'Pendiente') {
+                    <button type="button" class="boton-accion boton-activar" (click)="activar(turno)">
+                      Activar
+                    </button>
+                    <button type="button" class="boton-accion boton-cancelar" (click)="cancelar(turno)">
+                      Cancelar
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  </div>
 </main>

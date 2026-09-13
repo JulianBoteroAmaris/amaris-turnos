@@ -5,8 +5,8 @@ $navy-700: #171b24;
 $navy-600: #262d42;
 $accent: #4fc3e0;
 $accent-dark: #1f8fae;
-$cream-50: #fffefa;
-$cream-200: #f2ecdd;
+$blanco: #ffffff;
+$fondo-panel: #eef1f4;
 $brown: #7a735e;
 $label: #9a8f72;
 $note: #b7ac8e;
@@ -16,10 +16,6 @@ $error: #b3261e;
 
 * {
   box-sizing: border-box;
-}
-
-%fuente-mono {
-  font-family: 'Space Mono', monospace;
 }
 
 :host {
@@ -101,7 +97,7 @@ $error: #b3261e;
   justify-content: center;
   overflow: hidden;
   padding: 40px 24px;
-  background: $cream-200;
+  background: $fondo-panel;
 }
 
 @keyframes emision {
@@ -119,7 +115,7 @@ $error: #b3261e;
 .tarjeta {
   width: 100%;
   max-width: 440px;
-  background: $cream-50;
+  background: $blanco;
   border-radius: 16px;
   box-shadow: 0 30px 70px -18px rgba(23, 20, 10, 0.28);
   position: relative;
@@ -182,45 +178,11 @@ $error: #b3261e;
   margin: 0 0 16px;
 }
 
-@keyframes sello-entrada {
-  0% {
-    opacity: 0;
-    transform: rotate(-4deg) scale(2.2);
-  }
-
-  70% {
-    opacity: 1;
-    transform: rotate(-4deg) scale(0.94);
-  }
-
-  100% {
-    opacity: 1;
-    transform: rotate(-4deg) scale(1);
-  }
-}
-
-.sello-expirado {
-  display: inline-block;
-  margin: 0 0 16px;
-  padding: 5px 14px;
-  border: 2px solid $error;
-  border-radius: 6px;
-  @extend %fuente-mono;
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: $error;
-  transform: rotate(-4deg);
-  animation: sello-entrada 380ms cubic-bezier(0.3, 1.6, 0.5, 1);
-}
-
 .campo {
   margin-bottom: 18px;
 
   label {
     display: block;
-    @extend %fuente-mono;
     font-size: 10px;
     letter-spacing: 0.16em;
     color: $label;
@@ -292,7 +254,6 @@ $error: #b3261e;
   margin: 16px auto 0;
   background: none;
   border: none;
-  @extend %fuente-mono;
   font-size: 11px;
   letter-spacing: 0.06em;
   color: $note;
@@ -315,8 +276,7 @@ $error: #b3261e;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tarjeta,
-  .sello-expirado {
+  .tarjeta {
     animation: none;
   }
 }

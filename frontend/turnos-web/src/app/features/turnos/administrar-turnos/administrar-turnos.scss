@@ -1,19 +1,123 @@
+$navy-950: #0a0f1e;
+$navy-900: #0d1426;
+$navy-800: #131c33;
+$navy-700: #171b24;
+$accent-dark: #1f8fae;
+$cream-50: #fffefa;
+$fondo-pagina: #eef1f4;
+$brown: #7a735e;
+$label: #9a8f72;
+$input-border: #e3dac1;
+$error: #b3261e;
+
+* {
+  box-sizing: border-box;
+}
+
+:host {
+  display: block;
+  font-family: 'Archivo', system-ui, sans-serif;
+}
+
 .pagina {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-  font-family: system-ui, sans-serif;
+  min-height: 100vh;
+  background: $fondo-pagina;
 }
 
 .encabezado {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
+  padding: 20px 32px;
+  background: linear-gradient(160deg, $navy-800 0%, $navy-900 55%, $navy-950 100%);
+
+  h1 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: rgba(245, 241, 230, 0.75);
+  }
+}
+
+.encabezado__marca {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.encabezado__textos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.encabezado__wordmark {
+  font-weight: 800;
+  font-size: 16px;
+  color: #f5f1e6;
+}
+
+.badge-logo {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #ffffff;
+  padding: 6px;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.boton-salir {
+  background: transparent;
+  border: 1.5px solid rgba(245, 241, 230, 0.35);
+  color: #f5f1e6;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 9px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(245, 241, 230, 0.12);
+    border-color: rgba(245, 241, 230, 0.6);
+  }
+}
+
+.contenido {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
 }
 
 .error-api {
-  color: #b3261e;
+  color: $error;
   font-weight: 600;
+  margin: 0 0 1rem;
+}
+
+.tarjeta {
+  background: $cream-50;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px -20px rgba(23, 20, 10, 0.18);
+  padding: 28px 32px;
+  margin-bottom: 2rem;
+
+  h2 {
+    margin: 0 0 20px;
+    font-size: 19px;
+    font-weight: 800;
+    color: $navy-700;
+  }
 }
 
 table {
@@ -21,42 +125,106 @@ table {
   border-collapse: collapse;
 }
 
-th,
+th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $label;
+  font-weight: 700;
+  border-bottom: 1.5px solid $input-border;
+}
+
 td {
   text-align: left;
-  padding: 0.5rem;
-  border-bottom: 1px solid #ddd;
+  padding: 12px;
+  font-size: 14px;
+  color: $navy-700;
+  border-bottom: 1px solid rgba(227, 218, 193, 0.6);
+}
+
+tbody tr:hover {
+  background: rgba(23, 20, 10, 0.025);
 }
 
 .cuenta-regresiva {
-  color: #666;
-  font-size: 0.85rem;
+  color: $brown;
+  font-size: 0.78rem;
+  margin-left: 6px;
 }
 
 .badge-estado {
   display: inline-block;
-  padding: 0.2rem 0.6rem;
+  padding: 4px 12px;
   border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .badge-pendiente {
-  background: #fff3cd;
-  color: #8a6500;
+  background: #f7e6b8;
+  color: #8a6b1f;
 }
 
 .badge-activado {
-  background: #e6f4ea;
-  color: #1b5e20;
+  background: rgba(79, 195, 224, 0.18);
+  color: $accent-dark;
 }
 
 .badge-expirado {
-  background: #eceff1;
-  color: #546e7a;
+  background: #e7e9ec;
+  color: #5b6472;
 }
 
 .badge-cancelado {
-  background: #eceff1;
-  color: #616161;
+  background: #ece7da;
+  color: $brown;
+}
+
+.estado-vacio {
+  text-align: center;
+  color: $brown;
+  padding: 1.5rem 0;
+}
+
+.boton-accion {
+  border: 1.5px solid;
+  background: transparent;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  margin-right: 6px;
+}
+
+.boton-activar {
+  border-color: $accent-dark;
+  color: $accent-dark;
+
+  &:hover {
+    background: $accent-dark;
+    color: #ffffff;
+  }
+}
+
+.boton-cancelar {
+  border-color: $error;
+  color: $error;
+
+  &:hover {
+    background: $error;
+    color: #ffffff;
+  }
+}
+
+@media (max-width: 600px) {
+  .encabezado {
+    padding: 16px 20px;
+  }
 }

@@ -1,99 +1,109 @@
 <main class="pagina">
-  <div class="encabezado">
-    <h1>Agendamiento de turnos</h1>
-    <button type="button" (click)="cerrarSesion()">Cerrar sesión</button>
-  </div>
-
-  <section class="formulario-agendar">
-    <h2>Agendar turno</h2>
-
-    @if (turnoConfirmado(); as turno) {
-      <div class="confirmacion-turno">
-        <p>
-          Turno <strong>#{{ turno.numeroTurno }}</strong> agendado con éxito en
-          <strong>{{ turno.sucursalNombre }}</strong>. Tienes 15 minutos para activarlo.
-        </p>
-        <button type="button" (click)="cerrarConfirmacion()">Cerrar</button>
+  <header class="encabezado">
+    <div class="encabezado__marca">
+      <div class="badge-logo"><img src="mantu.png" alt="Mantu" /></div>
+      <div class="encabezado__textos">
+        <span class="encabezado__wordmark">Amaris Turnos</span>
+        <h1>Agendamiento de turnos</h1>
       </div>
-    }
+    </div>
+    <button type="button" class="boton-salir" (click)="cerrarSesion()">Cerrar sesión</button>
+  </header>
 
-    <form [formGroup]="form" (ngSubmit)="agendar()">
-      <div class="campo">
-        <label for="cedula">Cédula</label>
-        <input id="cedula" type="text" formControlName="cedula" inputmode="numeric" placeholder="Ej: 1023456789" />
-        @if (form.controls.cedula.touched && form.controls.cedula.invalid) {
-          <p class="error-campo">Ingresa una cédula válida (6 a 10 dígitos numéricos).</p>
-        }
-      </div>
+  <div class="contenido">
+    <section class="tarjeta formulario-agendar">
+      <h2>Agendar turno</h2>
 
-      <div class="campo">
-        <label for="sucursal">Sucursal</label>
-        <select id="sucursal" formControlName="sucursalId">
-          <option [ngValue]="null">Selecciona una sucursal</option>
-          @for (sucursal of sucursales(); track sucursal.id) {
-            <option [ngValue]="sucursal.id">{{ sucursal.nombre }} - {{ sucursal.ciudad }}</option>
-          }
-        </select>
-        @if (form.controls.sucursalId.touched && form.controls.sucursalId.invalid) {
-          <p class="error-campo">Selecciona una sucursal.</p>
-        }
-      </div>
-
-      <button type="submit" [disabled]="enviando()">
-        {{ enviando() ? 'Agendando...' : 'Agendar turno' }}
-      </button>
-
-      @if (errorEnvio()) {
-        <p class="error-api">{{ errorEnvio() }}</p>
+      @if (turnoConfirmado(); as turno) {
+        <div class="confirmacion-turno">
+          <p>
+            Turno <strong>#{{ turno.numeroTurno }}</strong> agendado con éxito en
+            <strong>{{ turno.sucursalNombre }}</strong>. Tienes 15 minutos para activarlo.
+          </p>
+          <button type="button" class="boton-cerrar-confirmacion" (click)="cerrarConfirmacion()">Cerrar</button>
+        </div>
       }
-    </form>
-  </section>
 
-  <section class="lista-turnos">
-    <h2>Turnos</h2>
-
-    @if (errorCarga()) {
-      <p class="error-api">{{ errorCarga() }}</p>
-    }
-
-    @if (cargandoTurnos()) {
-      <p>Cargando turnos...</p>
-    } @else if (turnos().length === 0) {
-      <p>No hay turnos registrados todavía.</p>
-    } @else {
-      <table>
-        <thead>
-          <tr>
-            <th>N.º turno</th>
-            <th>Cédula</th>
-            <th>Sucursal</th>
-            <th>Estado</th>
-            <th>Expira</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (turno of turnos(); track turno.id) {
-            <tr>
-              <td>{{ turno.numeroTurno }}</td>
-              <td>{{ turno.cedulaCliente }}</td>
-              <td>{{ turno.sucursalNombre }}</td>
-              <td>
-                <span class="badge-estado" [class]="claseEstado(turno)">{{ estadoMostrado(turno) }}</span>
-                @if (estadoMostrado(turno) === 'Pendiente') {
-                  <span class="cuenta-regresiva">({{ tiempoRestante(turno) }})</span>
-                }
-              </td>
-              <td>{{ turno.fechaHoraExpiracion | date: 'HH:mm:ss' }}</td>
-              <td>
-                @if (estadoMostrado(turno) === 'Pendiente') {
-                  <button type="button" (click)="activar(turno)">Activar</button>
-                }
-              </td>
-            </tr>
+      <form [formGroup]="form" (ngSubmit)="agendar()">
+        <div class="campo">
+          <label for="cedula">Cédula</label>
+          <input id="cedula" type="text" formControlName="cedula" inputmode="numeric" placeholder="Ej: 1023456789" />
+          @if (form.controls.cedula.touched && form.controls.cedula.invalid) {
+            <p class="error-campo">Ingresa una cédula válida (6 a 10 dígitos numéricos).</p>
           }
-        </tbody>
-      </table>
-    }
-  </section>
+        </div>
+
+        <div class="campo">
+          <label for="sucursal">Sucursal</label>
+          <select id="sucursal" formControlName="sucursalId">
+            <option [ngValue]="null">Selecciona una sucursal</option>
+            @for (sucursal of sucursales(); track sucursal.id) {
+              <option [ngValue]="sucursal.id">{{ sucursal.nombre }} - {{ sucursal.ciudad }}</option>
+            }
+          </select>
+          @if (form.controls.sucursalId.touched && form.controls.sucursalId.invalid) {
+            <p class="error-campo">Selecciona una sucursal.</p>
+          }
+        </div>
+
+        <button type="submit" class="boton-primario" [disabled]="enviando()">
+          {{ enviando() ? 'Agendando...' : 'Agendar turno' }}
+        </button>
+
+        @if (errorEnvio()) {
+          <p class="error-api">{{ errorEnvio() }}</p>
+        }
+      </form>
+    </section>
+
+    <section class="tarjeta lista-turnos">
+      <h2>Turnos</h2>
+
+      @if (errorCarga()) {
+        <p class="error-api">{{ errorCarga() }}</p>
+      }
+
+      @if (cargandoTurnos()) {
+        <p class="estado-vacio">Cargando turnos...</p>
+      } @else if (turnos().length === 0) {
+        <p class="estado-vacio">No hay turnos registrados todavía.</p>
+      } @else {
+        <table>
+          <thead>
+            <tr>
+              <th>N.º turno</th>
+              <th>Cédula</th>
+              <th>Sucursal</th>
+              <th>Estado</th>
+              <th>Expira</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (turno of turnos(); track turno.id) {
+              <tr>
+                <td>{{ turno.numeroTurno }}</td>
+                <td>{{ turno.cedulaCliente }}</td>
+                <td>{{ turno.sucursalNombre }}</td>
+                <td>
+                  <span class="badge-estado" [class]="claseEstado(turno)">{{ estadoMostrado(turno) }}</span>
+                  @if (estadoMostrado(turno) === 'Pendiente') {
+                    <span class="cuenta-regresiva">({{ tiempoRestante(turno) }})</span>
+                  }
+                </td>
+                <td>{{ turno.fechaHoraExpiracion | date: 'HH:mm:ss' }}</td>
+                <td>
+                  @if (estadoMostrado(turno) === 'Pendiente') {
+                    <button type="button" class="boton-accion boton-activar" (click)="activar(turno)">
+                      Activar
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  </div>
 </main>

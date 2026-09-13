@@ -36,7 +36,7 @@
         </p>
 
         @if (sesionExpirada()) {
-          <p class="sello-expirado">Sesión expirada</p>
+          <p class="alerta">Tu sesión expiró, inicia sesión de nuevo.</p>
         }
 
         <form [formGroup]="form" (ngSubmit)="iniciarSesion()">
@@ -48,7 +48,7 @@
               type="text"
               formControlName="nombreUsuario"
               autocomplete="username"
-              placeholder="usuario.turnos"
+              placeholder="Usuario"
             />
             @if (form.controls.nombreUsuario.touched && form.controls.nombreUsuario.invalid) {
               <p class="campo__error">Ingresa el usuario.</p>
