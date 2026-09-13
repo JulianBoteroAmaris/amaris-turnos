@@ -27,8 +27,8 @@ public class AuthServiceTests
         var resultado = await CrearServicio().LoginAsync("admin", "Admin123!");
 
         resultado.EsExitoso.ShouldBeTrue();
-        resultado.Token.ShouldBe("token-generado");
-        resultado.Rol.ShouldBe(RolUsuario.Administrador);
+        resultado.Value!.Token.ShouldBe("token-generado");
+        resultado.Value!.Rol.ShouldBe(RolUsuario.Administrador);
         resultado.Error.ShouldBeNull();
     }
 

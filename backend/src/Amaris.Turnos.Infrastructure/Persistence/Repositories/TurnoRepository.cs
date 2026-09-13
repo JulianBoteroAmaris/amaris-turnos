@@ -40,8 +40,7 @@ public class TurnoRepository : ITurnoRepository
 
         if (filtro.Fecha.HasValue)
         {
-            var inicio = filtro.Fecha.Value.Date;
-            var fin = inicio.AddDays(1);
+            var (inicio, fin) = RangoDelDia(filtro.Fecha.Value);
             query = query.Where(t => t.FechaHoraCreacion >= inicio && t.FechaHoraCreacion < fin);
         }
 
@@ -52,8 +51,7 @@ public class TurnoRepository : ITurnoRepository
 
     public Task<int> ContarTurnosCedulaDelDiaAsync(string cedula, DateTime fecha, CancellationToken cancellationToken = default)
     {
-        var inicio = fecha.Date;
-        var fin = inicio.AddDays(1);
+        var (inicio, fin) = RangoDelDia(fecha);
 
         return _dbContext.Turnos
             .Where(t => t.CedulaCliente == cedula && t.FechaHoraCreacion >= inicio && t.FechaHoraCreacion < fin)
@@ -62,8 +60,7 @@ public class TurnoRepository : ITurnoRepository
 
     public Task<int> ContarTurnosSucursalDelDiaAsync(int sucursalId, DateTime fecha, CancellationToken cancellationToken = default)
     {
-        var inicio = fecha.Date;
-        var fin = inicio.AddDays(1);
+        var (inicio, fin) = RangoDelDia(fecha);
 
         return _dbContext.Turnos
             .Where(t => t.SucursalId == sucursalId && t.FechaHoraCreacion >= inicio && t.FechaHoraCreacion < fin)
@@ -77,4 +74,10 @@ public class TurnoRepository : ITurnoRepository
         _dbContext.Turnos
             .Where(t => t.Estado == EstadoTurno.Pendiente && t.FechaHoraExpiracion <= momento)
             .ExecuteUpdateAsync(setters => setters.SetProperty(t => t.Estado, EstadoTurno.Expirado), cancellationToken);
+
+    private static (DateTime Inicio, DateTime Fin) RangoDelDia(DateTime fecha)
+    {
+        var inicio = fecha.Date;
+        return (inicio, inicio.AddDays(1));
+    }
 }

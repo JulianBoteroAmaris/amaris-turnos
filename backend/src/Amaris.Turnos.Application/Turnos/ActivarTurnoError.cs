@@ -4,5 +4,6 @@ public enum ActivarTurnoError
 {
     NoEncontrado,
     EstadoNoPendiente,
-    Expirado
+    Expirado,
+    ConflictoConcurrencia
 }

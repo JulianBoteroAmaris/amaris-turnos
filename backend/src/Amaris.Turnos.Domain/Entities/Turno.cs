@@ -13,4 +13,5 @@ public class Turno
     public DateTime FechaHoraExpiracion { get; set; }
     public DateTime? FechaHoraActivacion { get; set; }
     public EstadoTurno Estado { get; set; }
+    public byte[] RowVersion { get; set; } = Array.Empty<byte>();
 }

@@ -1,7 +1,9 @@
+using Amaris.Turnos.Application.Common;
 using Amaris.Turnos.Application.Interfaces;
 using Amaris.Turnos.Application.Turnos;
 using Amaris.Turnos.Domain.Entities;
 using Amaris.Turnos.Domain.Enums;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using Shouldly;
 
@@ -12,16 +14,19 @@ public class TurnoServiceTests
     private readonly ITurnoRepository _turnoRepository = Substitute.For<ITurnoRepository>();
     private readonly ISucursalRepository _sucursalRepository = Substitute.For<ISucursalRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IOptions<TurnoOptions> _opciones = Options.Create(new TurnoOptions());
 
     public TurnoServiceTests()
     {
         _unitOfWork.EjecutarTransaccionSerializableAsync(
-                Arg.Any<Func<CancellationToken, Task<CrearTurnoResultado>>>(),
+                Arg.Any<Func<CancellationToken, Task<Result<Turno, CrearTurnoError>>>>(),
                 Arg.Any<CancellationToken>())
-            .Returns(callInfo => callInfo.Arg<Func<CancellationToken, Task<CrearTurnoResultado>>>()(callInfo.ArgAt<CancellationToken>(1)));
+            .Returns(callInfo => callInfo.Arg<Func<CancellationToken, Task<Result<Turno, CrearTurnoError>>>>()(callInfo.ArgAt<CancellationToken>(1)));
+
+        _unitOfWork.IntentarGuardarCambiosAsync(Arg.Any<CancellationToken>()).Returns(true);
     }
 
-    private TurnoService CrearServicio() => new(_turnoRepository, _sucursalRepository, _unitOfWork);
+    private TurnoService CrearServicio() => new(_turnoRepository, _sucursalRepository, _unitOfWork, _opciones);
 
     [Theory]
     [InlineData("")]
@@ -76,7 +81,7 @@ public class TurnoServiceTests
         var resultado = await CrearServicio().CrearTurnoAsync("123456", 1);
 
         resultado.EsExitoso.ShouldBeTrue();
-        resultado.Turno.ShouldNotBeNull();
+        resultado.Value.ShouldNotBeNull();
         await _turnoRepository.Received(1).AgregarAsync(Arg.Any<Turno>(), Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).GuardarCambiosAsync(Arg.Any<CancellationToken>());
     }
@@ -110,7 +115,7 @@ public class TurnoServiceTests
         var resultado = await CrearServicio().CrearTurnoAsync("123456", 1);
 
         resultado.EsExitoso.ShouldBeTrue();
-        resultado.Turno!.NumeroTurno.ShouldBe(8);
+        resultado.Value!.NumeroTurno.ShouldBe(8);
     }
 
     [Fact]
@@ -128,7 +133,7 @@ public class TurnoServiceTests
         var despues = DateTime.UtcNow;
 
         resultado.EsExitoso.ShouldBeTrue();
-        var turno = resultado.Turno!;
+        var turno = resultado.Value!;
         turno.Estado.ShouldBe(EstadoTurno.Pendiente);
         turno.FechaHoraCreacion.ShouldBeInRange(antes, despues);
         turno.FechaHoraExpiracion.ShouldBe(turno.FechaHoraCreacion.AddMinutes(15));
@@ -187,7 +192,20 @@ public class TurnoServiceTests
         resultado.EsExitoso.ShouldBeTrue();
         turno.Estado.ShouldBe(EstadoTurno.Activado);
         turno.FechaHoraActivacion.ShouldNotBeNull();
-        await _unitOfWork.Received(1).GuardarCambiosAsync(Arg.Any<CancellationToken>());
+        await _unitOfWork.Received(1).IntentarGuardarCambiosAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ActivarTurnoAsync_ConConflictoDeConcurrencia_RetornaConflictoConcurrencia()
+    {
+        var turno = new Turno { Id = 1, Estado = EstadoTurno.Pendiente, FechaHoraExpiracion = DateTime.UtcNow.AddMinutes(10) };
+        _turnoRepository.ObtenerPorIdAsync(1, Arg.Any<CancellationToken>()).Returns(turno);
+        _unitOfWork.IntentarGuardarCambiosAsync(Arg.Any<CancellationToken>()).Returns(false);
+
+        var resultado = await CrearServicio().ActivarTurnoAsync(1);
+
+        resultado.EsExitoso.ShouldBeFalse();
+        resultado.Error.ShouldBe(ActivarTurnoError.ConflictoConcurrencia);
     }
 
     [Fact]
@@ -228,7 +246,21 @@ public class TurnoServiceTests
 
         resultado.EsExitoso.ShouldBeTrue();
         turno.Estado.ShouldBe(EstadoTurno.Cancelado);
-        await _unitOfWork.Received(1).GuardarCambiosAsync(Arg.Any<CancellationToken>());
+        await _unitOfWork.Received(1).IntentarGuardarCambiosAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CancelarTurnoAsync_ConConflictoDeConcurrencia_RetornaConflictoConcurrencia()
+    {
+        var turno = new Turno { Id = 1, Estado = EstadoTurno.Pendiente, FechaHoraExpiracion = DateTime.UtcNow.AddMinutes(10) };
+        _turnoRepository.ObtenerPorIdAsync(1, Arg.Any<CancellationToken>()).Returns(turno);
+        _unitOfWork.IntentarGuardarCambiosAsync(Arg.Any<CancellationToken>()).Returns(false);
+
+        var resultado = await CrearServicio().CancelarTurnoAsync(1);
+
+        resultado.EsExitoso.ShouldBeFalse();
+        resultado.Error.ShouldBe(CancelarTurnoError.ConflictoConcurrencia);
+        turno.Estado.ShouldBe(EstadoTurno.Cancelado);
     }
 
     [Fact]

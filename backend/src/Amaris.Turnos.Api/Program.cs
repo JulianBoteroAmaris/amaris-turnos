@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using Amaris.Turnos.Api.Configuration;
 using Amaris.Turnos.Api.Middleware;
 using Amaris.Turnos.Application;
 using Amaris.Turnos.Infrastructure;
@@ -15,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddApplication();
+builder.Services.AddApplication(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHostedService<TurnoExpiracionBackgroundService>();
 
@@ -41,10 +42,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+var corsOptions = builder.Configuration.GetSection(FrontendCorsOptions.SeccionConfiguracion).Get<FrontendCorsOptions>()
+    ?? throw new InvalidOperationException("La configuración de CORS (sección 'Cors') no fue encontrada.");
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(FrontendCorsPolicy, policy =>
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins(corsOptions.Origen)
             .AllowAnyHeader()
             .AllowAnyMethod());
 });

@@ -1,6 +1,7 @@
 using Amaris.Turnos.Api.Auth;
 using Amaris.Turnos.Api.Controllers;
 using Amaris.Turnos.Application.Auth;
+using Amaris.Turnos.Application.Common;
 using Amaris.Turnos.Domain.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,7 @@ public class AuthControllerTests
     public async Task Login_ConCredencialesValidas_Retorna200ConTokenYRol()
     {
         _authService.LoginAsync("admin", "Admin123!", Arg.Any<CancellationToken>())
-            .Returns(LoginResultado.Exitoso("token-generado", RolUsuario.Administrador));
+            .Returns(Result<LoginExitoso, LoginError>.Exitoso(new LoginExitoso("token-generado", RolUsuario.Administrador)));
 
         var resultado = await CrearController().Login(new LoginRequest("admin", "Admin123!"), CancellationToken.None);
 
@@ -34,7 +35,7 @@ public class AuthControllerTests
     public async Task Login_ConCredencialesInvalidas_Retorna401()
     {
         _authService.LoginAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(LoginResultado.Fallido(LoginError.CredencialesInvalidas, "Credenciales invalidas"));
+            .Returns(Result<LoginExitoso, LoginError>.Fallido(LoginError.CredencialesInvalidas, "Credenciales invalidas"));
 
         var resultado = await CrearController().Login(new LoginRequest("admin", "incorrecta"), CancellationToken.None);
 
@@ -46,7 +47,7 @@ public class AuthControllerTests
     public async Task Login_ConUsuarioOPasswordVacios_Retorna400()
     {
         _authService.LoginAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(LoginResultado.Fallido(LoginError.EntradaInvalida, "Usuario y password son requeridos"));
+            .Returns(Result<LoginExitoso, LoginError>.Fallido(LoginError.EntradaInvalida, "Usuario y password son requeridos"));
 
         var resultado = await CrearController().Login(new LoginRequest("", ""), CancellationToken.None);
 

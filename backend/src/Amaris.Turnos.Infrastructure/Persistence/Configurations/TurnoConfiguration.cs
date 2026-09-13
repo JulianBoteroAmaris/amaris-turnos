@@ -30,6 +30,9 @@ public class TurnoConfiguration : IEntityTypeConfiguration<Turno>
         builder.Property(t => t.FechaHoraExpiracion)
             .IsRequired();
 
+        builder.Property(t => t.RowVersion)
+            .IsRowVersion();
+
         builder.HasOne(t => t.Sucursal)
             .WithMany(s => s.Turnos)
             .HasForeignKey(t => t.SucursalId)

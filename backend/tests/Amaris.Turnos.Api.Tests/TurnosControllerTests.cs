@@ -1,5 +1,6 @@
 using Amaris.Turnos.Api.Controllers;
 using Amaris.Turnos.Api.Turnos;
+using Amaris.Turnos.Application.Common;
 using Amaris.Turnos.Application.Interfaces;
 using Amaris.Turnos.Application.Turnos;
 using Amaris.Turnos.Domain.Entities;
@@ -38,7 +39,7 @@ public class TurnosControllerTests
     {
         var turno = CrearTurno();
         _turnoService.CrearTurnoAsync("123456789", 1, Arg.Any<CancellationToken>())
-            .Returns(CrearTurnoResultado.Exitoso(turno));
+            .Returns(Result<Turno, CrearTurnoError>.Exitoso(turno));
 
         var resultado = await CrearController().Crear(new CrearTurnoRequest("123456789", 1), CancellationToken.None);
 
@@ -53,7 +54,7 @@ public class TurnosControllerTests
     public async Task Crear_ConCedulaInvalida_Retorna400()
     {
         _turnoService.CrearTurnoAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns(CrearTurnoResultado.Fallido(CrearTurnoError.CedulaInvalida, "Cedula invalida"));
+            .Returns(Result<Turno, CrearTurnoError>.Fallido(CrearTurnoError.CedulaInvalida, "Cedula invalida"));
 
         var resultado = await CrearController().Crear(new CrearTurnoRequest("abc", 1), CancellationToken.None);
 
@@ -65,7 +66,7 @@ public class TurnosControllerTests
     public async Task Crear_ConSucursalInvalida_Retorna400()
     {
         _turnoService.CrearTurnoAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns(CrearTurnoResultado.Fallido(CrearTurnoError.SucursalInvalida, "Sucursal invalida"));
+            .Returns(Result<Turno, CrearTurnoError>.Fallido(CrearTurnoError.SucursalInvalida, "Sucursal invalida"));
 
         var resultado = await CrearController().Crear(new CrearTurnoRequest("123456789", 999), CancellationToken.None);
 
@@ -77,7 +78,7 @@ public class TurnosControllerTests
     public async Task Crear_ConLimiteDiarioExcedido_Retorna409()
     {
         _turnoService.CrearTurnoAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns(CrearTurnoResultado.Fallido(CrearTurnoError.LimiteDiarioExcedido, "Limite diario excedido"));
+            .Returns(Result<Turno, CrearTurnoError>.Fallido(CrearTurnoError.LimiteDiarioExcedido, "Limite diario excedido"));
 
         var resultado = await CrearController().Crear(new CrearTurnoRequest("123456789", 1), CancellationToken.None);
 
@@ -114,7 +115,7 @@ public class TurnosControllerTests
     public async Task Activar_Exitoso_Retorna200()
     {
         var turno = CrearTurno(estado: EstadoTurno.Activado);
-        _turnoService.ActivarTurnoAsync(1, Arg.Any<CancellationToken>()).Returns(ActivarTurnoResultado.Exitoso(turno));
+        _turnoService.ActivarTurnoAsync(1, Arg.Any<CancellationToken>()).Returns(Result<Turno, ActivarTurnoError>.Exitoso(turno));
 
         var resultado = await CrearController().Activar(1, CancellationToken.None);
 
@@ -126,7 +127,7 @@ public class TurnosControllerTests
     public async Task Activar_NoEncontrado_Retorna404()
     {
         _turnoService.ActivarTurnoAsync(1, Arg.Any<CancellationToken>())
-            .Returns(ActivarTurnoResultado.Fallido(ActivarTurnoError.NoEncontrado, "No existe"));
+            .Returns(Result<Turno, ActivarTurnoError>.Fallido(ActivarTurnoError.NoEncontrado, "No existe"));
 
         var resultado = await CrearController().Activar(1, CancellationToken.None);
 
@@ -138,7 +139,7 @@ public class TurnosControllerTests
     public async Task Activar_ConEstadoNoPendiente_Retorna409()
     {
         _turnoService.ActivarTurnoAsync(1, Arg.Any<CancellationToken>())
-            .Returns(ActivarTurnoResultado.Fallido(ActivarTurnoError.EstadoNoPendiente, "Ya fue activado"));
+            .Returns(Result<Turno, ActivarTurnoError>.Fallido(ActivarTurnoError.EstadoNoPendiente, "Ya fue activado"));
 
         var resultado = await CrearController().Activar(1, CancellationToken.None);
 
@@ -150,7 +151,19 @@ public class TurnosControllerTests
     public async Task Activar_ConTurnoExpirado_Retorna409()
     {
         _turnoService.ActivarTurnoAsync(1, Arg.Any<CancellationToken>())
-            .Returns(ActivarTurnoResultado.Fallido(ActivarTurnoError.Expirado, "El turno expiro"));
+            .Returns(Result<Turno, ActivarTurnoError>.Fallido(ActivarTurnoError.Expirado, "El turno expiro"));
+
+        var resultado = await CrearController().Activar(1, CancellationToken.None);
+
+        var conflicto = resultado.Result.ShouldBeOfType<ConflictObjectResult>();
+        conflicto.StatusCode.ShouldBe(StatusCodes.Status409Conflict);
+    }
+
+    [Fact]
+    public async Task Activar_ConConflictoDeConcurrencia_Retorna409()
+    {
+        _turnoService.ActivarTurnoAsync(1, Arg.Any<CancellationToken>())
+            .Returns(Result<Turno, ActivarTurnoError>.Fallido(ActivarTurnoError.ConflictoConcurrencia, "Conflicto de concurrencia"));
 
         var resultado = await CrearController().Activar(1, CancellationToken.None);
 
@@ -162,7 +175,7 @@ public class TurnosControllerTests
     public async Task Cancelar_Exitoso_Retorna200()
     {
         var turno = CrearTurno(estado: EstadoTurno.Cancelado);
-        _turnoService.CancelarTurnoAsync(1, Arg.Any<CancellationToken>()).Returns(CancelarTurnoResultado.Exitoso(turno));
+        _turnoService.CancelarTurnoAsync(1, Arg.Any<CancellationToken>()).Returns(Result<Turno, CancelarTurnoError>.Exitoso(turno));
 
         var resultado = await CrearController().Cancelar(1, CancellationToken.None);
 
@@ -174,7 +187,7 @@ public class TurnosControllerTests
     public async Task Cancelar_NoEncontrado_Retorna404()
     {
         _turnoService.CancelarTurnoAsync(1, Arg.Any<CancellationToken>())
-            .Returns(CancelarTurnoResultado.Fallido(CancelarTurnoError.NoEncontrado, "No existe"));
+            .Returns(Result<Turno, CancelarTurnoError>.Fallido(CancelarTurnoError.NoEncontrado, "No existe"));
 
         var resultado = await CrearController().Cancelar(1, CancellationToken.None);
 
@@ -186,7 +199,19 @@ public class TurnosControllerTests
     public async Task Cancelar_ConEstadoNoPendiente_Retorna409()
     {
         _turnoService.CancelarTurnoAsync(1, Arg.Any<CancellationToken>())
-            .Returns(CancelarTurnoResultado.Fallido(CancelarTurnoError.EstadoNoPendiente, "No se puede cancelar"));
+            .Returns(Result<Turno, CancelarTurnoError>.Fallido(CancelarTurnoError.EstadoNoPendiente, "No se puede cancelar"));
+
+        var resultado = await CrearController().Cancelar(1, CancellationToken.None);
+
+        var conflicto = resultado.Result.ShouldBeOfType<ConflictObjectResult>();
+        conflicto.StatusCode.ShouldBe(StatusCodes.Status409Conflict);
+    }
+
+    [Fact]
+    public async Task Cancelar_ConConflictoDeConcurrencia_Retorna409()
+    {
+        _turnoService.CancelarTurnoAsync(1, Arg.Any<CancellationToken>())
+            .Returns(Result<Turno, CancelarTurnoError>.Fallido(CancelarTurnoError.ConflictoConcurrencia, "Conflicto de concurrencia"));
 
         var resultado = await CrearController().Cancelar(1, CancellationToken.None);
 

@@ -2,22 +2,24 @@ using Amaris.Turnos.Application.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Amaris.Turnos.Infrastructure.BackgroundServices;
 
 public class TurnoExpiracionBackgroundService : BackgroundService
 {
-    private static readonly TimeSpan Intervalo = TimeSpan.FromSeconds(30);
-
+    private readonly TimeSpan _intervalo;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<TurnoExpiracionBackgroundService> _logger;
 
     public TurnoExpiracionBackgroundService(
         IServiceScopeFactory scopeFactory,
-        ILogger<TurnoExpiracionBackgroundService> logger)
+        ILogger<TurnoExpiracionBackgroundService> logger,
+        IOptions<TurnoExpiracionOptions> opciones)
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
+        _intervalo = TimeSpan.FromSeconds(opciones.Value.IntervaloSegundos);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -43,7 +45,7 @@ public class TurnoExpiracionBackgroundService : BackgroundService
 
             try
             {
-                await Task.Delay(Intervalo, stoppingToken);
+                await Task.Delay(_intervalo, stoppingToken);
             }
             catch (OperationCanceledException)
             {

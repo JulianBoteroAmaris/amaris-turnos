@@ -1,6 +1,8 @@
+using Amaris.Turnos.Application.Common;
+
 namespace Amaris.Turnos.Application.Auth;
 
 public interface IAuthService
 {
-    Task<LoginResultado> LoginAsync(string nombreUsuario, string password, CancellationToken cancellationToken = default);
+    Task<Result<LoginExitoso, LoginError>> LoginAsync(string nombreUsuario, string password, CancellationToken cancellationToken = default);
 }

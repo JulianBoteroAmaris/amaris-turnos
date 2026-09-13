@@ -1,6 +1,8 @@
+using Amaris.Turnos.Api.Common;
 using Amaris.Turnos.Api.Turnos;
 using Amaris.Turnos.Application.Interfaces;
 using Amaris.Turnos.Application.Turnos;
+using Amaris.Turnos.Domain.Entities;
 using Amaris.Turnos.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,19 +28,20 @@ public class TurnosController : ControllerBase
     {
         var resultado = await _turnoService.CrearTurnoAsync(request.Cedula, request.SucursalId, cancellationToken);
 
-        if (!resultado.EsExitoso)
-        {
-            return resultado.Error switch
+        return this.ToActionResult<Turno, CrearTurnoError, TurnoResponse>(
+            resultado,
+            turno =>
+            {
+                var response = TurnoResponse.DesdeEntidad(turno);
+                return CreatedAtAction(nameof(ObtenerPorId), new { id = response.Id }, response);
+            },
+            error => error switch
             {
                 CrearTurnoError.CedulaInvalida => BadRequest(new { mensaje = resultado.MensajeError }),
                 CrearTurnoError.SucursalInvalida => BadRequest(new { mensaje = resultado.MensajeError }),
                 CrearTurnoError.LimiteDiarioExcedido => Conflict(new { mensaje = resultado.MensajeError }),
                 _ => Problem(resultado.MensajeError)
-            };
-        }
-
-        var response = TurnoResponse.DesdeEntidad(resultado.Turno!);
-        return CreatedAtAction(nameof(ObtenerPorId), new { id = response.Id }, response);
+            });
     }
 
     [HttpGet]
@@ -78,18 +81,17 @@ public class TurnosController : ControllerBase
     {
         var resultado = await _turnoService.ActivarTurnoAsync(id, cancellationToken);
 
-        if (!resultado.EsExitoso)
-        {
-            return resultado.Error switch
+        return this.ToActionResult<Turno, ActivarTurnoError, TurnoResponse>(
+            resultado,
+            turno => Ok(TurnoResponse.DesdeEntidad(turno)),
+            error => error switch
             {
                 ActivarTurnoError.NoEncontrado => NotFound(new { mensaje = resultado.MensajeError }),
                 ActivarTurnoError.EstadoNoPendiente => Conflict(new { mensaje = resultado.MensajeError }),
                 ActivarTurnoError.Expirado => Conflict(new { mensaje = resultado.MensajeError }),
+                ActivarTurnoError.ConflictoConcurrencia => Conflict(new { mensaje = resultado.MensajeError }),
                 _ => Problem(resultado.MensajeError)
-            };
-        }
-
-        return Ok(TurnoResponse.DesdeEntidad(resultado.Turno!));
+            });
     }
 
     [HttpPost("{id:int}/cancelar")]
@@ -98,16 +100,15 @@ public class TurnosController : ControllerBase
     {
         var resultado = await _turnoService.CancelarTurnoAsync(id, cancellationToken);
 
-        if (!resultado.EsExitoso)
-        {
-            return resultado.Error switch
+        return this.ToActionResult<Turno, CancelarTurnoError, TurnoResponse>(
+            resultado,
+            turno => Ok(TurnoResponse.DesdeEntidad(turno)),
+            error => error switch
             {
                 CancelarTurnoError.NoEncontrado => NotFound(new { mensaje = resultado.MensajeError }),
                 CancelarTurnoError.EstadoNoPendiente => Conflict(new { mensaje = resultado.MensajeError }),
+                CancelarTurnoError.ConflictoConcurrencia => Conflict(new { mensaje = resultado.MensajeError }),
                 _ => Problem(resultado.MensajeError)
-            };
-        }
-
-        return Ok(TurnoResponse.DesdeEntidad(resultado.Turno!));
+            });
     }
 }
