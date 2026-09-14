@@ -32,24 +32,19 @@ describe('AgendarTurno', () => {
     fechaHoraActivacion: null,
   };
 
-  function flushCargaInicial(turnos: Turno[] = [turnoPendiente]): void {
+  function flushCargaInicial(): void {
     httpMock.expectOne(`${environment.apiUrl}/sucursales`).flush(sucursales);
-    httpMock.expectOne(`${environment.apiUrl}/turnos`).flush(turnos);
   }
 
-  function crearComponenteConTurnos(turnos: Turno[]): ComponentFixture<AgendarTurno> {
-    const nuevoFixture = TestBed.createComponent(AgendarTurno);
-    nuevoFixture.detectChanges();
-    httpMock.expectOne(`${environment.apiUrl}/sucursales`).flush(sucursales);
-    httpMock.expectOne(`${environment.apiUrl}/turnos`).flush(turnos);
-    nuevoFixture.detectChanges();
-    return nuevoFixture;
+  function llenarCedula(cedula: string): void {
+    const cedulaInput: HTMLInputElement = fixture.debugElement.query(By.css('#cedula')).nativeElement;
+    cedulaInput.value = cedula;
+    cedulaInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
   }
 
   function llenarYEnviarFormulario(): void {
-    const cedulaInput: HTMLInputElement = fixture.debugElement.query(By.css('#cedula')).nativeElement;
-    cedulaInput.value = '1023456789';
-    cedulaInput.dispatchEvent(new Event('input'));
+    llenarCedula('1023456789');
 
     const select: HTMLSelectElement = fixture.debugElement.query(By.css('#sucursal')).nativeElement;
     select.selectedIndex = 1;
@@ -59,6 +54,37 @@ describe('AgendarTurno', () => {
 
     const formEl: HTMLFormElement = fixture.debugElement.query(By.css('form')).nativeElement;
     formEl.dispatchEvent(new Event('submit'));
+  }
+
+  function consultar(): void {
+    const botonConsultar: HTMLButtonElement = fixture.debugElement.query(
+      By.css('.boton-secundario'),
+    ).nativeElement;
+    botonConsultar.click();
+    fixture.detectChanges();
+  }
+
+  function crearComponenteConTurnoActual(turno: Turno): ComponentFixture<AgendarTurno> {
+    const nuevoFixture = TestBed.createComponent(AgendarTurno);
+    nuevoFixture.detectChanges();
+    httpMock.expectOne(`${environment.apiUrl}/sucursales`).flush(sucursales);
+    nuevoFixture.detectChanges();
+
+    const cedulaInput: HTMLInputElement = nuevoFixture.debugElement.query(By.css('#cedula')).nativeElement;
+    cedulaInput.value = '1023456789';
+    cedulaInput.dispatchEvent(new Event('input'));
+    nuevoFixture.detectChanges();
+
+    const botonConsultar: HTMLButtonElement = nuevoFixture.debugElement.query(
+      By.css('.boton-secundario'),
+    ).nativeElement;
+    botonConsultar.click();
+    nuevoFixture.detectChanges();
+
+    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/turnos`).flush([turno]);
+    nuevoFixture.detectChanges();
+
+    return nuevoFixture;
   }
 
   beforeEach(async () => {
@@ -88,11 +114,14 @@ describe('AgendarTurno', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('muestra las sucursales y los turnos cargados', () => {
+  it('muestra las sucursales cargadas en el formulario', () => {
     const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(texto).toContain('Sucursal Centro');
-    expect(texto).toContain('3');
-    expect(texto).toContain('Pendiente');
+  });
+
+  it('muestra el mensaje inicial antes de consultar un turno', () => {
+    const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(texto).toContain('Ingresa tu cédula y presiona "Consultar"');
   });
 
   it('no envía el turno si el formulario es inválido', () => {
@@ -107,7 +136,7 @@ describe('AgendarTurno', () => {
     expect(texto).toContain('Selecciona una sucursal');
   });
 
-  it('agenda un turno y refresca la lista cuando el formulario es válido', () => {
+  it('agenda un turno y lo muestra como turno actual', () => {
     llenarYEnviarFormulario();
 
     const crearReq = httpMock.expectOne(`${environment.apiUrl}/turnos`);
@@ -115,15 +144,15 @@ describe('AgendarTurno', () => {
     expect(crearReq.request.body).toEqual({ cedula: '1023456789', sucursalId: 1 });
     crearReq.flush(turnoPendiente);
 
-    const refrescoReq = httpMock.expectOne(`${environment.apiUrl}/turnos`);
-    refrescoReq.flush([turnoPendiente]);
-
     fixture.detectChanges();
 
     const cedulaInput: HTMLInputElement = fixture.debugElement.query(By.css('#cedula')).nativeElement;
     expect(cedulaInput.value).toBe('');
 
     const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(texto).toContain('#3');
+    expect(texto).toContain('Sucursal Centro');
+    expect(texto).toContain('Pendiente');
     expect(texto).not.toContain('ya tiene 5 turnos');
   });
 
@@ -156,9 +185,7 @@ describe('AgendarTurno', () => {
   });
 
   it('marca la cédula como inválida si no cumple el patrón numérico', () => {
-    const cedulaInput: HTMLInputElement = fixture.debugElement.query(By.css('#cedula')).nativeElement;
-    cedulaInput.value = 'abc123';
-    cedulaInput.dispatchEvent(new Event('input'));
+    llenarCedula('abc123');
 
     const select: HTMLSelectElement = fixture.debugElement.query(By.css('#sucursal')).nativeElement;
     select.selectedIndex = 1;
@@ -176,20 +203,79 @@ describe('AgendarTurno', () => {
     expect(texto).toContain('Ingresa una cédula válida');
   });
 
-  it('asigna la clase de badge correspondiente al estado Pendiente', () => {
+  it('deshabilita el botón "Consultar" y no consulta si la cédula es inválida', () => {
+    llenarCedula('abc');
+
+    const botonConsultar: HTMLButtonElement = fixture.debugElement.query(
+      By.css('.boton-secundario'),
+    ).nativeElement;
+    expect(botonConsultar.disabled).toBe(true);
+
+    httpMock.expectNone((r) => r.url === `${environment.apiUrl}/turnos`);
+  });
+
+  it('consulta el turno actual de la cédula y lo muestra con su badge', () => {
+    llenarCedula('1023456789');
+    consultar();
+
+    const req = httpMock.expectOne(
+      (r) => r.url === `${environment.apiUrl}/turnos` && r.params.get('cedula') === '1023456789',
+    );
+    req.flush([turnoPendiente]);
+    fixture.detectChanges();
+
+    const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(texto).toContain('#3');
+    expect(texto).toContain('Sucursal Centro');
+
     const badge: HTMLElement = fixture.debugElement.query(By.css('.badge-estado')).nativeElement;
     expect(badge.classList.contains('badge-pendiente')).toBe(true);
   });
 
-  it('asigna las clases de badge correctas para los estados Activado y Cancelado', () => {
-    const turnoActivado: Turno = { ...turnoPendiente, id: 2, estado: 'Activado' };
-    const turnoCancelado: Turno = { ...turnoPendiente, id: 3, estado: 'Cancelado' };
+  it('ignora turnos Expirado/Cancelado y toma el vigente más reciente', () => {
+    const turnoCancelado: Turno = {
+      ...turnoPendiente,
+      id: 2,
+      estado: 'Cancelado',
+      fechaHoraCreacion: new Date(Date.now() - 60000).toISOString(),
+    };
+    const turnoExpirado: Turno = {
+      ...turnoPendiente,
+      id: 3,
+      estado: 'Expirado',
+      fechaHoraCreacion: new Date(Date.now() - 30000).toISOString(),
+    };
+    const turnoActivadoReciente: Turno = {
+      ...turnoPendiente,
+      id: 4,
+      numeroTurno: 7,
+      estado: 'Activado',
+      fechaHoraCreacion: new Date().toISOString(),
+    };
 
-    const nuevoFixture = crearComponenteConTurnos([turnoActivado, turnoCancelado]);
+    llenarCedula('1023456789');
+    consultar();
 
-    const badges = nuevoFixture.debugElement.queryAll(By.css('.badge-estado'));
-    expect((badges[0].nativeElement as HTMLElement).classList.contains('badge-activado')).toBe(true);
-    expect((badges[1].nativeElement as HTMLElement).classList.contains('badge-cancelado')).toBe(true);
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/turnos`)
+      .flush([turnoCancelado, turnoExpirado, turnoActivadoReciente]);
+    fixture.detectChanges();
+
+    const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(texto).toContain('#7');
+    expect(texto).toContain('Activado');
+    expect(texto).not.toContain('No tienes ningún turno agendado');
+  });
+
+  it('muestra el mensaje de "sin turno" cuando la cédula no tiene turnos vigentes', () => {
+    llenarCedula('1023456789');
+    consultar();
+
+    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/turnos`).flush([]);
+    fixture.detectChanges();
+
+    const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(texto).toContain('No tienes ningún turno agendado actualmente.');
   });
 
   it('calcula el tiempo restante en formato mm:ss', () => {
@@ -202,7 +288,7 @@ describe('AgendarTurno', () => {
       fechaHoraExpiracion: new Date(instante.getTime() + 5 * 60 * 1000 + 30 * 1000).toISOString(),
     };
 
-    const nuevoFixture = crearComponenteConTurnos([turno]);
+    const nuevoFixture = crearComponenteConTurnoActual(turno);
 
     const texto = (nuevoFixture.nativeElement as HTMLElement).textContent ?? '';
     expect(texto).toContain('(05:30)');
@@ -220,7 +306,7 @@ describe('AgendarTurno', () => {
       fechaHoraExpiracion: new Date(instante.getTime() + 5000).toISOString(),
     };
 
-    const nuevoFixture = crearComponenteConTurnos([turnoPorExpirar]);
+    const nuevoFixture = crearComponenteConTurnoActual(turnoPorExpirar);
 
     let texto = (nuevoFixture.nativeElement as HTMLElement).textContent ?? '';
     expect(texto).toContain('Pendiente');
@@ -238,67 +324,24 @@ describe('AgendarTurno', () => {
     vi.useRealTimers();
   });
 
-  it('muestra la confirmación con los datos del turno tras agendarlo exitosamente', () => {
-    llenarYEnviarFormulario();
+  it('activa el turno actual y actualiza su estado con la respuesta de la API', () => {
+    llenarCedula('1023456789');
+    consultar();
+    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/turnos`).flush([turnoPendiente]);
+    fixture.detectChanges();
 
-    httpMock.expectOne(`${environment.apiUrl}/turnos`).flush(turnoPendiente);
-    httpMock.expectOne(`${environment.apiUrl}/turnos`).flush([turnoPendiente]);
+    const botonActivar: HTMLButtonElement = fixture.debugElement.query(
+      By.css('.boton-activar'),
+    ).nativeElement;
+    botonActivar.click();
 
+    const activarReq = httpMock.expectOne(`${environment.apiUrl}/turnos/1/activar`);
+    expect(activarReq.request.method).toBe('POST');
+    activarReq.flush({ ...turnoPendiente, estado: 'Activado' });
     fixture.detectChanges();
 
     const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(texto).toContain('agendado con éxito');
-    expect(texto).toContain('Sucursal Centro');
-    expect(fixture.debugElement.query(By.css('.confirmacion-turno'))).toBeTruthy();
-  });
-
-  it('oculta la confirmación al hacer clic en "Cerrar"', () => {
-    llenarYEnviarFormulario();
-    httpMock.expectOne(`${environment.apiUrl}/turnos`).flush(turnoPendiente);
-    httpMock.expectOne(`${environment.apiUrl}/turnos`).flush([turnoPendiente]);
-    fixture.detectChanges();
-
-    const botonCerrar: HTMLButtonElement = fixture.debugElement.query(
-      By.css('.boton-cerrar-confirmacion'),
-    ).nativeElement;
-    botonCerrar.click();
-    fixture.detectChanges();
-
-    expect(fixture.debugElement.query(By.css('.confirmacion-turno'))).toBeNull();
-  });
-
-  it('oculta automáticamente la confirmación después de 8 segundos', () => {
-    vi.useFakeTimers();
-
-    llenarYEnviarFormulario();
-    httpMock.expectOne(`${environment.apiUrl}/turnos`).flush(turnoPendiente);
-    httpMock.expectOne(`${environment.apiUrl}/turnos`).flush([turnoPendiente]);
-    fixture.detectChanges();
-
-    expect(fixture.debugElement.query(By.css('.confirmacion-turno'))).toBeTruthy();
-
-    vi.advanceTimersByTime(8000);
-    fixture.detectChanges();
-
-    expect(fixture.debugElement.query(By.css('.confirmacion-turno'))).toBeNull();
-
-    vi.useRealTimers();
-  });
-
-  it('oculta la confirmación previa al iniciar un nuevo envío', () => {
-    llenarYEnviarFormulario();
-    httpMock.expectOne(`${environment.apiUrl}/turnos`).flush(turnoPendiente);
-    httpMock.expectOne(`${environment.apiUrl}/turnos`).flush([turnoPendiente]);
-    fixture.detectChanges();
-
-    expect(fixture.debugElement.query(By.css('.confirmacion-turno'))).toBeTruthy();
-
-    llenarYEnviarFormulario();
-    fixture.detectChanges();
-
-    expect(fixture.debugElement.query(By.css('.confirmacion-turno'))).toBeNull();
-
-    httpMock.expectOne(`${environment.apiUrl}/turnos`).flush(turnoPendiente);
-    httpMock.expectOne(`${environment.apiUrl}/turnos`).flush([turnoPendiente]);
+    expect(texto).toContain('Activado');
+    expect(fixture.debugElement.query(By.css('.boton-activar'))).toBeNull();
   });
 });

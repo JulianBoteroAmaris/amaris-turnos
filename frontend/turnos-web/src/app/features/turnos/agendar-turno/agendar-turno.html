@@ -14,20 +14,24 @@
     <section class="tarjeta formulario-agendar">
       <h2>Agendar turno</h2>
 
-      @if (turnoConfirmado(); as turno) {
-        <div class="confirmacion-turno">
-          <p>
-            Turno <strong>#{{ turno.numeroTurno }}</strong> agendado con éxito en
-            <strong>{{ turno.sucursalNombre }}</strong>. Tienes 15 minutos para activarlo.
-          </p>
-          <button type="button" class="boton-cerrar-confirmacion" (click)="cerrarConfirmacion()">Cerrar</button>
-        </div>
+      @if (errorSucursales()) {
+        <p class="error-api">{{ errorSucursales() }}</p>
       }
 
       <form [formGroup]="form" (ngSubmit)="agendar()">
         <div class="campo">
           <label for="cedula">Cédula</label>
-          <input id="cedula" type="text" formControlName="cedula" inputmode="numeric" placeholder="Ej: 1023456789" />
+          <div class="campo-con-boton">
+            <input id="cedula" type="text" formControlName="cedula" inputmode="numeric" placeholder="Ej: 1023456789" />
+            <button
+              type="button"
+              class="boton-secundario"
+              [disabled]="form.controls.cedula.invalid || consultando()"
+              (click)="consultarTurnoActual()"
+            >
+              {{ consultando() ? 'Consultando...' : 'Consultar' }}
+            </button>
+          </div>
           @if (form.controls.cedula.touched && form.controls.cedula.invalid) {
             <p class="error-campo">Ingresa una cédula válida (6 a 10 dígitos numéricos).</p>
           }
@@ -56,53 +60,36 @@
       </form>
     </section>
 
-    <section class="tarjeta lista-turnos">
-      <h2>Turnos</h2>
+    <section class="tarjeta turno-actual">
+      <h2>Tu turno actual</h2>
 
-      @if (errorCarga()) {
-        <p class="error-api">{{ errorCarga() }}</p>
+      @if (errorConsulta()) {
+        <p class="error-api">{{ errorConsulta() }}</p>
       }
 
-      @if (cargandoTurnos()) {
-        <p class="estado-vacio">Cargando turnos...</p>
-      } @else if (turnos().length === 0) {
-        <p class="estado-vacio">No hay turnos registrados todavía.</p>
-      } @else {
-        <table>
-          <thead>
-            <tr>
-              <th>N.º turno</th>
-              <th>Cédula</th>
-              <th>Sucursal</th>
-              <th>Estado</th>
-              <th>Expira</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (turno of turnos(); track turno.id) {
-              <tr>
-                <td>{{ turno.numeroTurno }}</td>
-                <td>{{ turno.cedulaCliente }}</td>
-                <td>{{ turno.sucursalNombre }}</td>
-                <td>
-                  <span class="badge-estado" [class]="claseEstado(turno)">{{ estadoMostrado(turno) }}</span>
-                  @if (estadoMostrado(turno) === 'Pendiente') {
-                    <span class="cuenta-regresiva">({{ tiempoRestante(turno) }})</span>
-                  }
-                </td>
-                <td>{{ turno.fechaHoraExpiracion | date: 'HH:mm:ss' }}</td>
-                <td>
-                  @if (estadoMostrado(turno) === 'Pendiente') {
-                    <button type="button" class="boton-accion boton-activar" (click)="activar(turno)">
-                      Activar
-                    </button>
-                  }
-                </td>
-              </tr>
+      @if (consultando()) {
+        <p class="estado-vacio">Consultando...</p>
+      } @else if (turnoActual(); as turno) {
+        <div class="tarjeta-turno-actual">
+          <p class="tarjeta-turno-actual__resumen">
+            Turno <strong>#{{ turno.numeroTurno }}</strong> — <strong>{{ turno.sucursalNombre }}</strong>
+          </p>
+          <p>
+            <span class="badge-estado" [class]="claseEstado(turno)">{{ estadoMostrado(turno) }}</span>
+            @if (estadoMostrado(turno) === 'Pendiente') {
+              <span class="cuenta-regresiva">({{ tiempoRestante(turno) }})</span>
             }
-          </tbody>
-        </table>
+          </p>
+          @if (estadoMostrado(turno) === 'Pendiente') {
+            <button type="button" class="boton-accion boton-activar" (click)="activar(turno)">
+              Activar
+            </button>
+          }
+        </div>
+      } @else if (consultaRealizada()) {
+        <p class="estado-vacio">No tienes ningún turno agendado actualmente.</p>
+      } @else {
+        <p class="estado-vacio">Ingresa tu cédula y presiona "Consultar" para ver tu turno actual.</p>
       }
     </section>
   </div>

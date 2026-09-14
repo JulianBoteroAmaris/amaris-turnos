@@ -1,13 +1,5 @@
-import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -15,7 +7,6 @@ import { AuthService } from '../../../core/auth.service';
 import { extraerMensajeError } from '../../../core/http-error.util';
 import { RelojService } from '../../../core/reloj.service';
 import { SucursalesService } from '../../../core/sucursales.service';
-import { TurnosListaService } from '../../../core/turnos-lista.service';
 import { TurnosService } from '../../../core/turnos.service';
 import { Sucursal } from '../../../shared/models/sucursal.model';
 import { Turno } from '../../../shared/models/turno.model';
@@ -26,14 +17,15 @@ import {
 } from '../../../shared/turno-estado.util';
 
 const MENSAJE_ERROR_POR_DEFECTO = 'Ocurrió un error inesperado al comunicarse con la API.';
+const ESTADOS_VIGENTES = ['Pendiente', 'Activado'];
 
 @Component({
   selector: 'app-agendar-turno',
-  imports: [ReactiveFormsModule, DatePipe],
+  imports: [ReactiveFormsModule],
   templateUrl: './agendar-turno.html',
   styleUrl: './agendar-turno.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [RelojService, TurnosListaService],
+  providers: [RelojService],
 })
 export class AgendarTurno implements OnInit {
   private readonly turnosService = inject(TurnosService);
@@ -41,9 +33,7 @@ export class AgendarTurno implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
-  private readonly destroyRef = inject(DestroyRef);
   private readonly reloj = inject(RelojService);
-  private readonly turnosLista = inject(TurnosListaService);
 
   protected readonly form = this.formBuilder.nonNullable.group({
     cedula: ['', [Validators.required, Validators.pattern(/^[0-9]{6,15}$/)]],
@@ -51,20 +41,16 @@ export class AgendarTurno implements OnInit {
   });
 
   protected readonly sucursales = signal<Sucursal[]>([]);
-  protected readonly turnos = this.turnosLista.turnos;
-  protected readonly cargandoTurnos = this.turnosLista.cargando;
-  protected readonly errorCarga = this.turnosLista.error;
+  protected readonly errorSucursales = signal<string | null>(null);
   protected readonly enviando = signal(false);
   protected readonly errorEnvio = signal<string | null>(null);
-  protected readonly turnoConfirmado = signal<Turno | null>(null);
-
-  private temporizadorConfirmacion: ReturnType<typeof setTimeout> | undefined;
+  protected readonly turnoActual = signal<Turno | null>(null);
+  protected readonly consultando = signal(false);
+  protected readonly consultaRealizada = signal(false);
+  protected readonly errorConsulta = signal<string | null>(null);
 
   ngOnInit(): void {
     this.cargarSucursales();
-    this.turnosLista.cargar();
-
-    this.destroyRef.onDestroy(() => clearTimeout(this.temporizadorConfirmacion));
   }
 
   protected agendar(): void {
@@ -76,14 +62,14 @@ export class AgendarTurno implements OnInit {
     const { cedula, sucursalId } = this.form.getRawValue();
     this.enviando.set(true);
     this.errorEnvio.set(null);
-    this.ocultarConfirmacion();
 
     this.turnosService.crear({ cedula, sucursalId: sucursalId! }).subscribe({
       next: (turno) => {
         this.enviando.set(false);
         this.form.reset({ cedula: '', sucursalId: null });
-        this.mostrarConfirmacion(turno);
-        this.turnosLista.cargar();
+        this.errorConsulta.set(null);
+        this.consultaRealizada.set(true);
+        this.turnoActual.set(turno);
       },
       error: (error: HttpErrorResponse) => {
         this.enviando.set(false);
@@ -92,18 +78,38 @@ export class AgendarTurno implements OnInit {
     });
   }
 
-  protected cerrarConfirmacion(): void {
-    this.ocultarConfirmacion();
-  }
-
   protected cerrarSesion(): void {
     this.authService.logout();
     this.router.navigateByUrl('/login');
   }
 
+  protected consultarTurnoActual(): void {
+    const cedulaControl = this.form.controls.cedula;
+
+    if (cedulaControl.invalid) {
+      cedulaControl.markAsTouched();
+      return;
+    }
+
+    this.consultando.set(true);
+    this.errorConsulta.set(null);
+
+    this.turnosService.obtener({ cedula: cedulaControl.value }).subscribe({
+      next: (turnos) => {
+        this.consultando.set(false);
+        this.consultaRealizada.set(true);
+        this.turnoActual.set(this.turnoVigenteMasReciente(turnos));
+      },
+      error: (error: HttpErrorResponse) => {
+        this.consultando.set(false);
+        this.errorConsulta.set(extraerMensajeError(error, MENSAJE_ERROR_POR_DEFECTO));
+      },
+    });
+  }
+
   protected activar(turno: Turno): void {
     this.turnosService.activar(turno.id).subscribe({
-      next: () => this.turnosLista.cargar(),
+      next: (turnoActualizado) => this.turnoActual.set(turnoActualizado),
       error: (error: HttpErrorResponse) =>
         this.errorEnvio.set(extraerMensajeError(error, MENSAJE_ERROR_POR_DEFECTO)),
     });
@@ -121,22 +127,25 @@ export class AgendarTurno implements OnInit {
     return tiempoRestanteTurno(turno, this.reloj.ahora());
   }
 
-  private mostrarConfirmacion(turno: Turno): void {
-    this.turnoConfirmado.set(turno);
-    clearTimeout(this.temporizadorConfirmacion);
-    this.temporizadorConfirmacion = setTimeout(() => this.turnoConfirmado.set(null), 8000);
-  }
+  private turnoVigenteMasReciente(turnos: Turno[]): Turno | null {
+    const vigentes = turnos.filter((turno) => ESTADOS_VIGENTES.includes(turno.estado));
 
-  private ocultarConfirmacion(): void {
-    clearTimeout(this.temporizadorConfirmacion);
-    this.turnoConfirmado.set(null);
+    if (vigentes.length === 0) {
+      return null;
+    }
+
+    return vigentes.reduce((masReciente, actual) =>
+      new Date(actual.fechaHoraCreacion) > new Date(masReciente.fechaHoraCreacion)
+        ? actual
+        : masReciente,
+    );
   }
 
   private cargarSucursales(): void {
     this.sucursalesService.obtener().subscribe({
       next: (sucursales) => this.sucursales.set(sucursales),
       error: (error: HttpErrorResponse) =>
-        this.errorCarga.set(extraerMensajeError(error, MENSAJE_ERROR_POR_DEFECTO)),
+        this.errorSucursales.set(extraerMensajeError(error, MENSAJE_ERROR_POR_DEFECTO)),
     });
   }
 }
