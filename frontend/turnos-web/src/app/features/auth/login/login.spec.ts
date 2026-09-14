@@ -76,7 +76,7 @@ describe('Login', () => {
 
     const req = httpMock.expectOne(`${environment.apiUrl}/auth/login`);
     expect(req.request.body).toEqual({ nombreUsuario: 'admin', password: 'Admin123!' });
-    req.flush({ token: 'token-de-prueba', rol: 'Asesor' });
+    req.flush({ token: 'token-de-prueba', rol: 'Cliente' });
 
     expect(navigateSpy).toHaveBeenCalledWith('/');
   });

@@ -30,7 +30,7 @@ describe('adminGuard', () => {
   });
 
   it('redirige a la raíz si el rol no es Administrador', () => {
-    authService.rol.set('Asesor');
+    authService.rol.set('Cliente');
 
     const resultado = TestBed.runInInjectionContext(() =>
       adminGuard({} as never, {} as never),

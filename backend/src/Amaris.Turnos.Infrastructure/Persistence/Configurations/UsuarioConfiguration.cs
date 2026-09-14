@@ -40,9 +40,9 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
             new Usuario
             {
                 Id = 2,
-                NombreUsuario = "asesor",
-                PasswordHash = "AQAAAAIAAYagAAAAECZ2l4KsS9ctj9ZlkbxuCUuNxFjgjIsjRmGsQEHWtU9shTE4iTv/0+coeT8+TDe8ig==",
-                Rol = RolUsuario.Asesor
+                NombreUsuario = "cliente",
+                PasswordHash = "AQAAAAIAAYagAAAAED/1ImO8UJldyO5W6tXlumtkSIlX8Mct7ngMbVcm4wFYy0LL3TnpfCA3iySIv0CVRw==",
+                Rol = RolUsuario.Cliente
             }
         );
     }

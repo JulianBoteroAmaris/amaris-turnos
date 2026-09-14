@@ -60,7 +60,7 @@ describe('AuthService', () => {
     service.login({ nombreUsuario: 'admin', password: 'Admin123!' }).subscribe();
     httpMock
       .expectOne(`${environment.apiUrl}/auth/login`)
-      .flush({ token: 'token-de-prueba', rol: 'Asesor' });
+      .flush({ token: 'token-de-prueba', rol: 'Cliente' });
 
     service.logout();
 
@@ -80,11 +80,11 @@ describe('AuthService', () => {
     expect(service.esAdministrador()).toBe(true);
   });
 
-  it('esAdministrador() retorna false cuando el rol es Asesor', () => {
-    service.login({ nombreUsuario: 'asesor', password: 'Admin123!' }).subscribe();
+  it('esAdministrador() retorna false cuando el rol es Cliente', () => {
+    service.login({ nombreUsuario: 'cliente', password: 'Cliente123!' }).subscribe();
     httpMock
       .expectOne(`${environment.apiUrl}/auth/login`)
-      .flush({ token: 'token-de-prueba', rol: 'Asesor' });
+      .flush({ token: 'token-de-prueba', rol: 'Cliente' });
 
     expect(service.esAdministrador()).toBe(false);
   });

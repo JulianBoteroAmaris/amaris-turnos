@@ -3,7 +3,7 @@ export interface LoginRequest {
   password: string;
 }
 
-export type RolUsuario = 'Administrador' | 'Asesor';
+export type RolUsuario = 'Administrador' | 'Cliente';
 
 export interface LoginResponse {
   token: string;
