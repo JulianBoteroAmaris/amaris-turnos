@@ -1,6 +1,6 @@
 # Informe de arquitectura — Sistema de Agendamiento de Turnos
 
-> Basado en [arc42](https://arc42.org) (plantilla oficial en español, [arc42/arc42-template](https://github.com/arc42/arc42-template)), adaptado a este proyecto. Los bloques citados como este son guía de arc42 o notas de contexto — bórralos a medida que redactes. Los datos técnicos (endpoints, entidades, configuración) ya están rellenados porque son hechos verificables del repo; lo que falta por escribir es principalmente el *porqué* de cada decisión, en tu propia voz.
+> Basado en [arc42](https://arc42.org) (plantilla oficial en español, [arc42/arc42-template](https://github.com/arc42/arc42-template)), adaptado a este proyecto. Los bloques citados como este son guía de arc42.
 
 ## 1. Introducción y metas
 
@@ -8,18 +8,20 @@
 
 Sistema de agendamiento de turnos para una entidad bancaria (prueba técnica Amaris Consulting). Un cliente agenda un turno indicando su cédula y la sucursal donde será atendido, sin necesidad de estar físicamente ahí (web). Reglas de negocio centrales:
 
-- El turno debe activarse dentro de los **15 minutos** siguientes a agendarse; si no, expira automáticamente.
-- Una misma cédula no puede solicitar más de **5 turnos en el mismo día**; al llegar al límite queda bloqueada hasta el día siguiente.
+- El turno debe activarse dentro de los 15 minutos siguientes a agendarse; si no, expira automáticamente.
+- Una misma cédula no puede solicitar más de 5 turnos en el mismo día, al llegar al límite queda bloqueada hasta el día siguiente.
 
 ### 1.2 Metas de calidad
 
-> Completar: las 3-5 metas de calidad más importantes, priorizadas. El PDF de la prueba evalúa explícitamente arquitectura, buenas prácticas, seguridad, eficiencia/escalabilidad y pruebas unitarias — ver árbol de calidad en la sección 10.
+Le dí especial atención a esto:
 
 | # | Meta de calidad | Escenario concreto |
 |---|---|---|
-| 1 | _\<ej. Seguridad>_ | _\<ej. solo usuarios autenticados con rol adecuado operan sobre turnos>_ |
-| 2 | _\<...>_ | _\<...>_ |
-| 3 | _\<...>_ | _\<...>_ |
+| 1 | Consistencia bajo concurrencia | Que si dos personas hacen algo al mismo tiempo sobre el mismo turno, o llegan juntas al límite de 5 turnos del día para la misma cédula, no se pisen los datos en silencio — una gana y la otra recibe un error claro|
+| 2 | Experiencia de usuario / diseño | Que la app no se sintiera como un formulario cualquiera — se cuidó el diseño del front, con animaciones y buen UX/UI, no solo que funcionara |
+| 3 | Rendimiento del código | Que el código no hiciera trabajo de más — se le metió una pasada de optimización tanto en el back como en el front |
+
+Seguro quedan cosas por pulir y todavía hay mucho por aprender, pero para el alcance y el tiempo de esta prueba creo que quedó bastante bien resuelto.
 
 ### 1.3 Partes interesadas (stakeholders)
 
@@ -27,13 +29,12 @@ Sistema de agendamiento de turnos para una entidad bancaria (prueba técnica Ama
 |---|---|
 | Cliente (autenticado) | Agendar su propio turno con su cédula, listarlo, activarlo — sin estar en la sucursal |
 | Administrador | Todo lo anterior + cancelar turnos de cualquier cliente |
-| Evaluador (Amaris) | Código y arquitectura evaluables contra los criterios del PDF |
 
 ## 2. Restricciones de la arquitectura
 
 | Tipo | Restricción |
 |---|---|
-| Técnica | API RESTful en C#/.NET (6, 7 u 8) — se usó **.NET 8** |
+| Técnica | API RESTful en **.NET 8** |
 | Técnica | Front-end en **Angular** — se usó Angular 21 (standalone components, sin NgModules) |
 | Técnica | Persistencia en base de datos — se usó **SQL Server** vía Docker |
 | Técnica | Autenticación/autorización obligatoria sobre la API |
@@ -49,15 +50,13 @@ Cliente (cédula, autenticado) ──agenda/activa su turno──▶ Sistema de 
 Administrador ──cancela turnos──▶ Sistema de Turnos
 ```
 
-_\<Completar: diagrama de caja negra si se quiere más formal>_
-
 ### 3.2 Contexto técnico
 
 ```
 Angular SPA (:4200) ──HTTPS/JSON + JWT Bearer──▶ ASP.NET Core Web API (:5227) ──EF Core──▶ SQL Server (Docker, :1433)
 ```
 
-CORS habilitado explícitamente para el origen del front (`http://localhost:4200`, configurable). Swagger disponible en desarrollo para explorar/probar la API directamente.
+recordar que el CORS es habilitado explícitamente para el origen del front local. Swagger disponible en desarrollo.
 
 ## 4. Estrategia de solución
 
@@ -72,7 +71,7 @@ CORS habilitado explícitamente para el origen del front (`http://localhost:4200
 | Concurrencia (agregado) | Transacción con aislamiento *Serializable* + reintentos, para el límite de 5 turnos/día |
 | Concurrencia (fila individual) | Concurrencia optimista (`RowVersion`) en `Turno`, para evitar que dos acciones simultáneas sobre el mismo turno se pisen en silencio |
 
-> Completar: justificación de por qué se eligió cada una (ver también sección 9, Decisiones de diseño, para el detalle de las más discutibles).
+Las justificaciones de las decisiones más discutibles quedan en la sección 9 (Decisiones de diseño).
 
 ## 5. Vista de bloques de construcción
 
@@ -108,7 +107,29 @@ CORS habilitado explícitamente para el origen del front (`http://localhost:4200
 | `shared/models/` | Interfaces TS que reflejan los DTOs del backend |
 | `shared/globo-animado/` | Componente presentacional (animación decorativa del login) |
 
-> Completar: si se quiere, diagrama de caja negra/blanca formal de alguno de estos bloques.
+**Capas del backend** (la flecha indica "depende de" — las dependencias solo miran hacia adentro, `Domain` no depende de nada):
+
+```mermaid
+flowchart TD
+    Api["Amaris.Turnos.Api. Controllers, DTOs, Program.cs"] --> Application
+    Api --> Infrastructure
+    Infrastructure["Amaris.Turnos.Infrastructure EF Core, repositorios, JWT, background service"] --> Application
+    Application["Amaris.Turnos.Application TurnoService, AuthService, Result, interfaces"] --> Domain
+    Domain["Amaris.Turnos.Domain Entidades, enums"]
+```
+
+**Estructura del frontend:**
+
+```mermaid
+flowchart TD
+    App["turnos-web"] --> Core["core, servicios, guards, interceptor"]
+    App --> Features["features/"]
+    App --> Shared["shared/ models, globo-animado"]
+    Features --> Auth["auth/login"]
+    Features --> Turnos["turnos/"]
+    Turnos --> Agendar["agendar-turno"]
+    Turnos --> Administrar["administrar-turnos"]
+```
 
 ## 6. Vista de ejecución (runtime)
 
@@ -123,17 +144,11 @@ CORS habilitado explícitamente para el origen del front (`http://localhost:4200
 - **Perezosa:** si se intenta activar un turno vencido, se marca `Expirado` en ese momento.
 - **Proactiva:** `TurnoExpiracionBackgroundService` corre cada N segundos (configurable) y expira en bloque los turnos `Pendiente` vencidos.
 
-### Escenario: conflicto de concurrencia
-
-Dos solicitudes simultáneas sobre el *mismo* turno (ej. doble clic en "Activar", o un admin cancelando justo cuando expira): la segunda escritura falla por el `RowVersion` desactualizado → `409 Conflict`, en vez de perderse en silencio.
-
 ### Escenario: login y autorización
 
 1. `POST /api/auth/login` valida credenciales (hash con `PasswordHasher<Usuario>`), emite JWT con claim de rol.
 2. El frontend adjunta el token en cada request (`auth.interceptor.ts`).
 3. Un 401 en cualquier request autenticado cierra la sesión y redirige a login.
-
-> Completar: diagramas de secuencia si se quiere ilustrar alguno de estos flujos visualmente.
 
 ## 7. Vista de despliegue
 
@@ -144,37 +159,12 @@ Dos solicitudes simultáneas sobre el *mismo* turno (ej. doble clic en "Activar"
 | Frontend (dev) | `ng serve`, `http://localhost:4200` |
 | Configuración | `appsettings.json` (versionado, sin secretos) + `appsettings.Development.json` (gitignored, valores reales locales) + `.env` en la raíz para Docker |
 
-> Completar: pasos de ejecución detallados (ya cubiertos en el README) y, si aplica, un despliegue real (no solo local).
+Esta prueba corre solo local (Docker para la base de datos); no hubo un despliegue real a un ambiente externo. Los pasos para levantarlo están en el README.
 
-## 8. Conceptos transversales
 
-| Concepto | Cómo se resuelve |
-|---|---|
-| Autenticación/autorización | JWT bearer + roles (`Administrador`/`Cliente`), `[Authorize(Roles=...)]` en el endpoint de cancelar |
-| Manejo de errores | `Result<TValue,TError>` para errores de negocio esperados (400/404/409); `ExceptionHandlingMiddleware` para lo no esperado (500 en JSON sin stack trace) |
-| Concurrencia de agregado | Transacción *Serializable* + reintentos (`UnitOfWork.EjecutarTransaccionSerializableAsync`) — protege el conteo de 5 turnos/día |
-| Concurrencia de entidad | `RowVersion` (concurrencia optimista) en `Turno` |
-| Configuración | Constantes de negocio (límite diario, minutos de expiración, intervalo del background job, reintentos, origen CORS) vía `IOptions<T>`, no hardcodeadas |
-| Expiración de sesión (frontend) | Interceptor HTTP detecta 401 → limpia sesión → redirige a login |
+## 8. Requisitos de calidad
 
-## 9. Decisiones de diseño
-
-> Completar la columna "Justificación" con tu propio razonamiento — aquí solo se deja registrada la decisión tomada, para que no se pierda.
-
-| Decisión | Alternativa(s) descartada(s) | Justificación |
-|---|---|---|
-| "Actualizar turno" del PDF se implementó como `POST /turnos/{id}/activar`, sin un PUT genérico | PUT genérico de campos arbitrarios | _\<completar>_ |
-| SQL Server vía Docker | SQLite, PostgreSQL | _\<completar>_ |
-| JWT propio en vez de ASP.NET Core Identity completo | Identity completo | _\<completar>_ |
-| Vitest en vez de Jest en el frontend | Instalar Jest explícitamente | Vitest es el runner por defecto de Angular 21, API compatible con Jest |
-| Rol "Cliente" en vez de invitados/API pública para crear turnos | `POST /turnos` público sin login | El PDF no especifica cómo se identifica al cliente al usar la app/web — se interpretó que ya está autenticado en la app/portal del banco (como en un banco real), no que cualquiera pueda crear turnos sin sesión |
-| "Cancelar" turno exclusivo de Administrador | Todos los roles con los mismos permisos | _\<completar — decisión de producto, no viene del PDF>_ |
-| Token JWT en `sessionStorage` en vez de `localStorage` | `localStorage`, cookie httpOnly | Para una app bancaria, acota la ventana de exposición si la máquina queda desatendida |
-| Dominio "anémico" (entidades sin comportamiento propio, reglas en Application) | Entidades ricas con métodos de transición de estado | _\<completar>_ |
-
-## 10. Requisitos de calidad
-
-### 10.1 Árbol de calidad
+### 8.1 Árbol de calidad
 
 Raíz: *calidad de la solución*, ramas = los 5 criterios explícitos del PDF:
 
@@ -184,7 +174,7 @@ Raíz: *calidad de la solución*, ramas = los 5 criterios explícitos del PDF:
 - Eficiencia y escalabilidad
 - Pruebas unitarias
 
-### 10.2 Escenarios de calidad
+### 8.2 Escenarios de calidad
 
 | Escenario | Resultado esperado |
 |---|---|
@@ -194,28 +184,3 @@ Raíz: *calidad de la solución*, ramas = los 5 criterios explícitos del PDF:
 | Cliente intenta cancelar un turno | 403 (solo Administrador puede) |
 | 116 pruebas automáticas (51 backend, 65 frontend) | Todas en verde |
 
-> Completar: escenarios adicionales que se quieran destacar, con números si aplica (tiempos de respuesta, etc.).
-
-## 11. Riesgos y deuda técnica
-
-| Riesgo / deuda | Estado |
-|---|---|
-| Ventana de hasta N segundos donde el frontend puede mostrar "Expirado" (calculado contra el reloj del navegador) antes de que el background job actualice la base de datos | Aceptado — comportamiento esperado del diseño, no un bug |
-| Seed de usuarios con `PasswordHash` embebido en la migración/configuración de EF Core | Aceptable para un proyecto de muestra; en producción no se comitearían hashes en código fuente |
-| `environment.ts`/`environment.development.ts` del frontend son idénticos | Pendiente de un valor real de producción |
-| Dominio anémico (ver sección 9) | Decisión consciente, documentada |
-
-> Completar: cualquier riesgo adicional identificado, con una medida sugerida de mitigación.
-
-## 12. Glosario
-
-| Término | Definición |
-|---|---|
-| Turno | Solicitud de atención en una sucursal, con cédula, sucursal, hora de creación/expiración/activación y estado |
-| Sucursal | Punto de atención físico de la entidad bancaria |
-| Estado del turno | `Pendiente` → `Activado` \| `Expirado` \| `Cancelado` |
-| Ventana de activación | Los 15 minutos desde que se agenda el turno hasta que debe activarse en sucursal |
-| Cédula | Número de documento de identidad del cliente, identificador del turno |
-| Cliente | Rol que puede crear, listar y activar turnos (propios) |
-| Administrador | Rol que además puede cancelar turnos |
-| Credenciales de prueba | `admin` / `Admin123!` (Administrador), `cliente` / `Cliente123!` (Cliente) |
