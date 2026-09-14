@@ -1,3 +1,3 @@
 export const environment = {
-  apiUrl: 'http://localhost:5227/api'
+  apiUrl: 'https://amaris-turnos-api.azurewebsites.net/api'
 };
